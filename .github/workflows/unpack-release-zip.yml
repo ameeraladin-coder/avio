@@ -1,0 +1,29 @@
+# When a release is published with an "Avio-<version>-release.zip" attached, put the files inside it
+# (installer, app package, latest.yml) on the release and remove the zip, so a release needs one upload.
+name: Unpack release zip
+on:
+  release:
+    types: [published]
+permissions:
+  contents: write
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Unpack the zip into the release
+        run: |
+          zip=$(gh release view "$TAG" -R "$REPO" --json assets --jq '.assets[].name' | grep -E '^Avio-.*-release\.zip$' | head -n 1 || true)
+          if [ -z "$zip" ]; then
+            echo "No Avio-*-release.zip on $TAG; nothing to do."
+            exit 0
+          fi
+          gh release download "$TAG" -R "$REPO" -p "$zip"
+          mkdir out
+          unzip -j -o "$zip" -d out
+          ls -la out
+          gh release upload "$TAG" -R "$REPO" out/* --clobber
+          gh release delete-asset "$TAG" -R "$REPO" "$zip" -y
