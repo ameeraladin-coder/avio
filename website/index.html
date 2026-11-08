@@ -339,12 +339,9 @@
   .mwheel .ic { fill: none; stroke: var(--accent); stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; transition: stroke .25s, fill .25s; }
   .mwheel .ic.f { fill: var(--accent); stroke: none; }
   .mwheel .lab text { fill: #f5f4ea; font: 700 10.5px var(--body); text-anchor: middle; dominant-baseline: central; transition: fill .25s; }
-  .mwheel .nb { fill: var(--accent); transition: fill .25s; }
-  .mwheel .lab .nt { fill: #111; font: 800 9px var(--body); }
   .mwheel a.hot .side { fill: #bdb9a0; stroke: #bdb9a0; }
   .mwheel a.hot .cap { fill: #fff; stroke: #fff; }
   .mwheel a.hot .ic { stroke: #111; } .mwheel a.hot .ic.f { fill: #111; } .mwheel a.hot .lab text { fill: #111; }
-  .mwheel a.hot .nb { fill: #111; } .mwheel a.hot .lab .nt { fill: var(--accent); }
   .mwheel a.hot .pop { transform: translate(0, 0) scale(1.04); }
   .mwheel a.press .cap, .mwheel a.press .lab { transform: translateY(4px); }
   .mwheel .hub { fill: #111; }
@@ -1243,11 +1240,10 @@
     ];
     let svg = `<svg viewBox="0 0 240 240"><circle class="orbit" cx="120" cy="120" r="134"/><g class="orbit-dot"><circle cx="120" cy="-14" r="4.5"/></g>`;
     items.forEach((it, i) => {
-      const a0 = i * T - T / 2 + g, a1 = i * T + T / 2 - g, d = sect(a0, a1, 108, 70), [x, y] = P(89, i * T), [nx, ny] = P(104, i * T + T / 2 - g - .2);
+      const a0 = i * T - T / 2 + g, a1 = i * T + T / 2 - g, d = sect(a0, a1, 108, 70), [x, y] = P(89, i * T);
       svg += `<a href="${it.href}"${it.href.startsWith('http') ? ' target="_blank" rel="noopener"' : ''} data-i="${i}" data-copy="${it.copy ? 1 : ''}" aria-label="${it.label}" style="--d:${i * 110}ms">
         <g class="pop"><path class="side" d="${d}" transform="translate(0 5)"/><path class="cap" d="${d}"/>
-        <g class="lab"><path class="ic${it.f ? ' f' : ''}" d="${it.d}" transform="translate(${x - 10} ${y - 19}) scale(.84)"/><text x="${x}" y="${y + 12}"${it.i18n ? ` data-i18n="${it.i18n}"` : ''}>${it.label}</text>
-        <circle class="nb" cx="${nx}" cy="${ny}" r="8"/><text class="nt" x="${nx}" y="${ny}">${i + 1}</text></g></g></a>`;
+        <g class="lab"><path class="ic${it.f ? ' f' : ''}" d="${it.d}" transform="translate(${x - 10} ${y - 19}) scale(.84)"/><text x="${x}" y="${y + 12}"${it.i18n ? ` data-i18n="${it.i18n}"` : ''}>${it.label}</text></g></g></a>`;
     });
     svg += `<circle class="hub" cx="120" cy="120" r="60"/><g class="ptr"><path d="M120 53 l-8 9 h16 z"/></g></svg>`;
     W.insertAdjacentHTML('afterbegin', svg);
