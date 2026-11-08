@@ -326,19 +326,31 @@
   .mwheel { position: relative; width: 240px; height: 240px; z-index: 1; }
   .mwheel svg { position: absolute; inset: 0; overflow: visible; }
   .mwheel a { cursor: pointer; outline: none; }
-  .mwheel .side { fill: #000; }
-  .mwheel .cap { fill: #16160f; transition: transform .12s, fill .2s; }
-  .mwheel .lab { transition: transform .12s; pointer-events: none; }
-  .mwheel .lab path { fill: none; stroke: var(--accent); stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
-  .mwheel .lab path.f { fill: var(--accent); stroke: none; }
-  .mwheel .lab text { fill: #f5f4ea; font: 700 10.5px var(--body); text-anchor: middle; dominant-baseline: central; }
-  .mwheel a:hover .cap, .mwheel a:focus-visible .cap, .mwheel a:hover .lab, .mwheel a:focus-visible .lab, .mwheel a.press .cap, .mwheel a.press .lab { transform: translateY(4px); }
-  .mwheel a.hot .side { fill: #bdb9a0; }
-  .mwheel a.hot .cap { fill: #fff; }
-  .mwheel a.hot .lab path { stroke: #111; } .mwheel a.hot .lab path.f { fill: #111; } .mwheel a.hot .lab text { fill: #111; }
-  .mwheel a:not(.hot):hover .cap { fill: #2a2a20; }
-  .mava { position: absolute; left: 50%; top: 50%; width: 96px; height: 96px; margin: -50px 0 0 -48px; border-radius: 50%; overflow: hidden;
-    background: radial-gradient(circle at 50% 78%, #fff, #fffa80 45%, #e8e000 75%); box-shadow: 0 0 0 4px #111; }
+  .mwheel .orbit { fill: none; stroke: rgba(0, 0, 0, .35); stroke-width: 1.5; stroke-dasharray: 2 7; stroke-linecap: round; }
+  .mwheel .orbit-dot { fill: #111; transform-origin: 120px 120px; animation: spin 14s linear infinite; }
+  .mwheel .pop { transform-origin: 120px 120px; transition: transform .25s cubic-bezier(.2, 1.4, .4, 1); }
+  .mwheel:not(.go) .pop { transform: scale(.4); opacity: 0; }
+  .mwheel.go .pop { animation: mpop .6s var(--d) cubic-bezier(.2, 1.5, .4, 1) both; }
+  @keyframes mpop { from { transform: scale(.4) rotate(-40deg); opacity: 0; } }
+  .mwheel .side, .mwheel .cap { stroke-width: 12; stroke-linejoin: round; }
+  .mwheel .side { fill: #000; stroke: #000; }
+  .mwheel .cap { fill: #16160f; stroke: #16160f; transition: transform .14s, fill .25s, stroke .25s; }
+  .mwheel .lab { transition: transform .14s; pointer-events: none; }
+  .mwheel .ic { fill: none; stroke: var(--accent); stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; transition: stroke .25s, fill .25s; }
+  .mwheel .ic.f { fill: var(--accent); stroke: none; }
+  .mwheel .lab text { fill: #f5f4ea; font: 700 10.5px var(--body); text-anchor: middle; dominant-baseline: central; transition: fill .25s; }
+  .mwheel .nb { fill: var(--accent); transition: fill .25s; }
+  .mwheel .lab .nt { fill: #111; font: 800 9px var(--body); }
+  .mwheel a.hot .side { fill: #bdb9a0; stroke: #bdb9a0; }
+  .mwheel a.hot .cap { fill: #fff; stroke: #fff; }
+  .mwheel a.hot .ic { stroke: #111; } .mwheel a.hot .ic.f { fill: #111; } .mwheel a.hot .lab text { fill: #111; }
+  .mwheel a.hot .nb { fill: #111; } .mwheel a.hot .lab .nt { fill: var(--accent); }
+  .mwheel a.hot .pop { transform: translate(0, 0) scale(1.04); }
+  .mwheel a.press .cap, .mwheel a.press .lab { transform: translateY(4px); }
+  .mwheel .hub { fill: #111; }
+  .mwheel .ptr { fill: #111; transform-origin: 120px 120px; transition: transform .45s cubic-bezier(.3, 1.4, .5, 1); }
+  .mava { position: absolute; left: 50%; top: 50%; width: 100px; height: 100px; margin: -50px 0 0 -50px; border-radius: 50%; overflow: hidden;
+    background: radial-gradient(circle at 50% 78%, #fff, #fffa80 45%, #e8e000 75%); box-shadow: 0 0 0 3px var(--accent); }
   .mava img { position: absolute; left: 50%; bottom: -2px; width: 94%; height: auto; transform: translateX(-50%); }
   .mbody { position: relative; z-index: 1; min-width: 0; }
   .mname { font: 900 clamp(30px, 4.2vw, 44px)/1.02 "Unbounded", system-ui, sans-serif; letter-spacing: -.03em; margin: 0 0 12px; direction: ltr; }
@@ -1220,29 +1232,43 @@
   // ---------- switching language ----------
   // ---------- maker card: wheel petals ----------
   (() => {
-    const W = document.getElementById('mwheel');
-    const NS = 'http://www.w3.org/2000/svg', C = 120;
+    const W = document.getElementById('mwheel'), C = 120;
     const P = (r, a) => [C + r * Math.sin(a), C - r * Math.cos(a)];
     const sect = (a0, a1, ro, ri) => { const [x0, y0] = P(ro, a0), [x1, y1] = P(ro, a1), [x2, y2] = P(ri, a1), [x3, y3] = P(ri, a0); return `M${x0} ${y0}A${ro} ${ro} 0 0 1 ${x1} ${y1}L${x2} ${y2}A${ri} ${ri} 0 0 0 ${x3} ${y3}Z`; };
-    const T = 2 * Math.PI / 3, g = .07;
+    const T = 2 * Math.PI / 3, g = .11;
     const items = [
       { href: 'https://www.linkedin.com/in/muhammed-ameer-aladdin-71198b1b2', label: 'LinkedIn', d: 'M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.06c.53-1 1.82-2.06 3.75-2.06 4 0 4.74 2.64 4.74 6.07V21h-4v-5.1c0-1.22-.02-2.78-1.7-2.78-1.7 0-1.95 1.32-1.95 2.69V21h-4z', f: 1 },
-      { href: 'mailto:ameeraladin@gmail.com', label: 'Email', i18n: 'mailBtn', d: 'M3 5h18v14H3zM3 6l9 7 9-7', hot: 1 },
+      { href: 'mailto:ameeraladin@gmail.com', label: 'Email', i18n: 'mailBtn', d: 'M3 5h18v14H3zM3 6l9 7 9-7' },
       { href: '#', label: 'Copy', i18n: 'copy', d: 'M8 8h12v12H8zM16 8V4H4v12h4', copy: 1 },
     ];
-    let svg = `<svg viewBox="0 0 240 240" aria-hidden="false"><defs><linearGradient id="mcapg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2e2e26"/><stop offset="1" stop-color="#1b1b15"/></linearGradient><linearGradient id="mcapy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffa6a"/><stop offset="1" stop-color="#fff510"/></linearGradient></defs>`;
+    let svg = `<svg viewBox="0 0 240 240"><circle class="orbit" cx="120" cy="120" r="134"/><g class="orbit-dot"><circle cx="120" cy="-14" r="4.5"/></g>`;
     items.forEach((it, i) => {
-      const a0 = i * T - T / 2 + g, a1 = i * T + T / 2 - g, d = sect(a0, a1, 116, 62), [x, y] = P(89, i * T);
-      svg += `<a href="${it.href}"${it.href.startsWith('http') ? ' target="_blank" rel="noopener"' : ''} class="${it.hot ? 'hot' : ''}" data-copy="${it.copy ? 1 : ''}" aria-label="${it.label}">
-        <path class="side" d="${d}" transform="translate(0 5)"/><path class="cap" d="${d}"/>
-        <g class="lab"><path class="${it.f ? 'f' : ''}" d="${it.d}" transform="translate(${x - 9} ${y - 17}) scale(.75)"/><text x="${x}" y="${y + 12}"${it.i18n ? ` data-i18n="${it.i18n}"` : ''}>${it.label}</text></g></a>`;
+      const a0 = i * T - T / 2 + g, a1 = i * T + T / 2 - g, d = sect(a0, a1, 108, 70), [x, y] = P(89, i * T), [nx, ny] = P(104, i * T + T / 2 - g - .2);
+      svg += `<a href="${it.href}"${it.href.startsWith('http') ? ' target="_blank" rel="noopener"' : ''} data-i="${i}" data-copy="${it.copy ? 1 : ''}" aria-label="${it.label}" style="--d:${i * 110}ms">
+        <g class="pop"><path class="side" d="${d}" transform="translate(0 5)"/><path class="cap" d="${d}"/>
+        <g class="lab"><path class="ic${it.f ? ' f' : ''}" d="${it.d}" transform="translate(${x - 10} ${y - 19}) scale(.84)"/><text x="${x}" y="${y + 12}"${it.i18n ? ` data-i18n="${it.i18n}"` : ''}>${it.label}</text>
+        <circle class="nb" cx="${nx}" cy="${ny}" r="8"/><text class="nt" x="${nx}" y="${ny}">${i + 1}</text></g></g></a>`;
     });
-    W.insertAdjacentHTML('afterbegin', svg + '</svg>');
-    W.querySelectorAll('a').forEach((a) => {
+    svg += `<circle class="hub" cx="120" cy="120" r="60"/><g class="ptr"><path d="M120 53 l-8 9 h16 z"/></g></svg>`;
+    W.insertAdjacentHTML('afterbegin', svg);
+    const links = [...W.querySelectorAll('a')], ptr = W.querySelector('.ptr');
+    let turn = 120;
+    const pick = (i) => {
+      links.forEach((l) => l.classList.toggle('hot', +l.dataset.i === i));
+      let t = i * 120; while (t - turn > 180) t -= 360; while (turn - t > 180) t += 360; turn = t;
+      ptr.style.transform = `rotate(${turn}deg)`;
+    };
+    pick(1);
+    links.forEach((a) => {
+      a.addEventListener('pointerenter', () => pick(+a.dataset.i));
+      a.addEventListener('focus', () => pick(+a.dataset.i));
       a.addEventListener('pointerdown', () => a.classList.add('press'));
       ['pointerup', 'pointerleave'].forEach((e) => a.addEventListener(e, () => a.classList.remove('press')));
       if (a.dataset.copy) a.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('mcopy').click(); });
     });
+    W.addEventListener('pointerleave', () => pick(1));
+    const io = new IntersectionObserver((es) => { if (es[0].isIntersecting) { W.classList.add('go'); io.disconnect(); } }, { threshold: .35 });
+    io.observe(W);
   })();
 
   const i18nEls = [...document.querySelectorAll('[data-i18n]')];
