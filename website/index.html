@@ -267,7 +267,7 @@
   /* final */
   .final { display: grid; place-items: center; padding-block: 90px 70px; text-align: center; gap: 26px; }
   .orbit { position: relative; width: min(320px, 82vw); aspect-ratio: 1; display: grid; place-items: center; overflow: hidden; border-radius: 50%; }
-  .orbit svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: spin 22s linear infinite; }
+  .orbit > svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: spin 22s linear infinite; }
   .orbit text { fill: var(--muted); font: 700 11px var(--mono); letter-spacing: 3.4px; }
   .orbit .btn { z-index: 1; }
   footer { border-top: 1px solid var(--line); padding-block: 26px 40px; display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 14px; color: var(--muted); }
@@ -300,8 +300,9 @@
   html[lang="ar"] .eyebrow, html[lang="ar"] .kicker { letter-spacing: 0; font-size: 14px; }
   html[lang="ar"] .hub-name { letter-spacing: 0; font-size: 6.4px; }
   html[lang="ar"] .slice .lbl.sm { font-size: 6px; }
-  html[lang="ar"] .pill, html[lang="ar"] .orbit text { font-family: var(--body); letter-spacing: 1px; }
-  html[lang="ar"] .orbit text { font-size: 12px; }
+  html[lang="ar"] .pill { font-family: var(--body); letter-spacing: 1px; }
+  .finalnote { color: var(--muted); font-size: 16px; margin-top: -6px; }
+  .finalnote:empty { display: none; }
   html[lang="ar"] .lede { max-width: 36ch; }
   /* the moving bands always run left to right; the Arabic words inside still read right to left */
   .ticker, .mega, .track, .mtrack { direction: ltr; }
@@ -538,12 +539,13 @@
 
   <div class="final">
     <div class="orbit">
-      <svg viewBox="0 0 200 200" aria-hidden="true"><defs><path id="circ" d="M100 100m-84 0a84 84 0 1 1 168 0a84 84 0 1 1-168 0"/></defs><text><textPath href="#circ" data-i18n="orbit">FREE · WINDOWS 10 &amp; 11 · TWO KEY PRESSES · AVIO · FREE · WINDOWS 10 &amp; 11 ·</textPath></text></svg>
+      <svg viewBox="0 0 200 200" aria-hidden="true"><defs><path id="circ" d="M100 100m-84 0a84 84 0 1 1 168 0a84 84 0 1 1-168 0"/></defs><text text-anchor="middle"><textPath id="orbitText" href="#circ" startOffset="50%" textLength="512" lengthAdjust="spacing" data-i18n="orbit">FREE · WINDOWS 10 &amp; 11 · TWO KEY PRESSES · AVIO ·</textPath></text></svg>
       <a class="btn primary dl" href="https://github.com/ameeraladin-coder/avio/releases/download/v1.2.2/Avio-Setup-1.2.2.exe" rel="noopener">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>
         <span data-i18n="ctaFinal">Download Avio</span>
       </a>
     </div>
+    <div class="finalnote" data-i18n="finalNote"></div>
   </div>
 
   <footer>
@@ -590,7 +592,8 @@
     i2: 'أبقِ الإنترنت متصلًا، فالمثبّت الصغير ينزّل بقية Avio (حوالي 100 ميجابايت).',
     i3: 'ابحث عن الأيقونة الصفراء بجانب الساعة، حدّد ملفًا واضغط Ctrl مرتين.',
     note: '<b>ظهرت لك نافذة زرقاء "Windows protected your PC"؟</b> يعرضها ويندوز للتطبيقات الجديدة التي لا تملك شهادة مدفوعة. اضغط <b>More info</b> (معلومات إضافية) ثم <b>Run anyway</b> (التشغيل على أي حال).',
-    orbit: 'مجاني · ويندوز 10 و 11 · بضغطتين · AVIO · مجاني · ويندوز 10 و 11 · بضغطتين ·',
+    orbit: 'AVIO · AVIO · AVIO · AVIO · AVIO · AVIO · AVIO ·',
+    finalNote: 'مجاني · ويندوز 10 و 11 · بضغطتين فقط',
     ctaFinal: 'حمّل Avio', foot1: '© 2026 Avio · رخصة MIT', foot2: 'Avio لويندوز · الإصدار 1.2.2',
   };
   // short labels used inside the wheels, chips and messages
@@ -1163,6 +1166,9 @@
     document.title = l === 'ar' ? 'Avio لويندوز' : 'Avio for Windows';
     for (const e of i18nEls) e.innerHTML = l === 'ar' ? AR[e.dataset.i18n] ?? e.dataset.en : e.dataset.en;
     h1.setAttribute('aria-label', l === 'ar' ? AR.h1Label : h1LabelEn);
+    const ot = document.getElementById('orbitText');
+    // Arabic doesn't render well on a curve, so the ring stays Latin and the Arabic line sits under the button
+    ot.setAttribute('textLength', '512');
     const btn = document.getElementById('langbtn');
     btn.textContent = l === 'ar' ? 'English' : 'عربي';
     btn.lang = l === 'ar' ? 'en' : 'ar';
