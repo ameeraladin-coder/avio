@@ -1240,7 +1240,7 @@
     ];
     let svg = `<svg viewBox="0 0 240 240"><circle class="orbit" cx="120" cy="120" r="134"/><g class="orbit-dot"><circle cx="120" cy="-14" r="4.5"/></g>`;
     items.forEach((it, i) => {
-      const a0 = i * T - T / 2 + g, a1 = i * T + T / 2 - g, d = sect(a0, a1, 108, 70), [x, y] = P(89, i * T);
+      const a0 = i * T - T / 2 + g, a1 = i * T + T / 2 - g, d = sect(a0, a1, 111, 79), [x, y] = P(95, i * T);
       svg += `<a href="${it.href}"${it.href.startsWith('http') ? ' target="_blank" rel="noopener"' : ''} data-i="${i}" data-copy="${it.copy ? 1 : ''}" aria-label="${it.label}" style="--d:${i * 110}ms">
         <g class="pop"><path class="side" d="${d}" transform="translate(0 5)"/><path class="cap" d="${d}"/>
         <g class="lab"><path class="ic${it.f ? ' f' : ''}" d="${it.d}" transform="translate(${x - 10} ${y - 19}) scale(.84)"/><text x="${x}" y="${y + 12}"${it.i18n ? ` data-i18n="${it.i18n}"` : ''}>${it.label}</text></g></g></a>`;
