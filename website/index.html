@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Avio for Windows: convert, compress and share any file with two key presses. Free for Windows 10 and 11.">
+<meta property="og:title" content="Avio for Windows">
+<meta property="og:description" content="Any file. Two key presses. Free for Windows 10 and 11.">
+<meta property="og:image" content="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<title>Avio for Windows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&family=Alexandria:wght@500;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+  /* Layout: a dark stage. Split hero (pitch | the live Avio wheel playing itself), a two-way format ticker,
+     then demos you can touch (three ways in, file-type wheel, compress meter, theme), install, and a spinning CTA. */
+  :root {
+    --bg: #0b0b09;
+    --surface: #14140f;
+    --surface-2: #1c1c15;
+    --line: #2a2a20;
+    --text: #f5f4ea;
+    --muted: #a3a290;
+    --accent: #fff510;
+    --on-accent: #0b0b09;
+    --w-base: #121210;
+    --w-seg: #1b1b17;
+    --w-line: rgba(255, 255, 255, .06);
+    --w-text: #ecebe2;
+    --w-hub: #191915;
+    --display: "Unbounded", "Segoe UI", system-ui, sans-serif;
+    --body: "Figtree", "Segoe UI", system-ui, sans-serif;
+    --mono: "JetBrains Mono", Consolas, "Cascadia Mono", monospace;
+    --radius: 20px;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--text); }
+  body {
+    margin: 0; font: 17px/1.6 var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  /* dotted field that lights up around the pointer */
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, .07) 1px, transparent 1.4px);
+    background-size: 26px 26px;
+    -webkit-mask-image: radial-gradient(420px circle at var(--mx, 70%) var(--my, 30%), #000 0, transparent 70%);
+            mask-image: radial-gradient(420px circle at var(--mx, 70%) var(--my, 30%), #000 0, transparent 70%);
+  }
+  .wrap { max-width: 1140px; margin: 0 auto; position: relative; z-index: 1; }
+  a { color: inherit; }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    font: 700 16px/1 var(--body); text-decoration: none; white-space: nowrap;
+    border-radius: 999px; padding: 16px 26px; border: 1px solid transparent; overflow: hidden;
+    transition: transform .2s cubic-bezier(.2, .9, .3, 1.3), box-shadow .25s;
+  }
+  .btn:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+  .btn.primary { background: var(--accent); color: var(--on-accent); }
+  .btn.primary::after {
+    content: ""; position: absolute; inset: 0; transform: translateX(-120%) skewX(-20deg);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .7), transparent);
+  }
+  .btn.primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 14px 44px -10px rgba(255, 245, 16, .6); }
+  .btn.primary:hover::after { transition: transform .7s; transform: translateX(120%) skewX(-20deg); }
+  .btn.ghost { border-color: var(--line); background: var(--surface); }
+  .btn.small { padding: 11px 18px; font-size: 14px; }
+
+  /* ---------- nav ---------- */
+  nav { display: flex; align-items: center; gap: 12px; padding-block: 22px; }
+  .brand { display: flex; align-items: center; gap: 10px; font: 900 21px/1 var(--display); letter-spacing: -.02em; text-decoration: none; }
+  .brand img { width: 34px; height: 34px; border-radius: 9px; transition: transform .5s cubic-bezier(.2, .9, .3, 1.4); }
+  .brand:hover img { transform: rotate(-12deg) scale(1.08); }
+  nav .grow { flex: 1; }
+  nav .links { display: flex; gap: 22px; font-size: 15px; color: var(--muted); }
+  nav .links a { text-decoration: none; }
+  nav .links a:hover { color: var(--text); }
+
+  /* ---------- hero ---------- */
+  .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; padding-block: 30px 60px; }
+  .hero > * { min-width: 0; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 9px; font: 600 13px/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 2px var(--accent); } }
+  h1 { font: 900 clamp(40px, 6.6vw, 82px)/.98 var(--display); letter-spacing: -.04em; margin: 18px 0 22px; text-wrap: balance; }
+  h1 .line { display: block; }
+  h1 .hl { color: var(--accent); }
+  h1 .word { display: inline-block; animation: rise .8s cubic-bezier(.2, .9, .3, 1.1) both; }
+  h1 .line:nth-child(2) .word { animation-delay: .12s; }
+  h1 .line:nth-child(3) .word { animation-delay: .24s; }
+  @keyframes rise { from { transform: translateY(.35em); } }
+  .lede { font-size: clamp(17px, 2vw, 20px); color: var(--muted); max-width: 34ch; margin: 0 0 30px; }
+  .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .meta b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* the live wheel */
+  .stage { position: relative; aspect-ratio: 1; width: 100%; max-width: 560px; justify-self: center; touch-action: manipulation; }
+  .stage::before {
+    content: ""; position: absolute; inset: 14%; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 245, 16, .2), rgba(255, 245, 16, 0) 68%); filter: blur(14px);
+    animation: breathe 5s ease-in-out infinite;
+  }
+  @keyframes breathe { 50% { transform: scale(1.08); opacity: .75; } }
+  .wheel { position: absolute; inset: 6%; transition: transform .45s cubic-bezier(.2, 1.2, .35, 1), opacity .3s; }
+  .wheel.closed { transform: scale(.55) rotate(-25deg); opacity: 0; }
+  .wheel svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 18px 30px rgba(0, 0, 0, .6)); }
+  .w-base { fill: var(--w-base); stroke: var(--w-line); }
+  .slice { cursor: pointer; transform-box: view-box; transform-origin: 100px 100px; animation: bloom .5s cubic-bezier(.2, 1.1, .35, 1.1) both; animation-delay: calc(var(--i) * 45ms); }
+  @keyframes bloom { from { transform: scale(.45) rotate(-30deg); opacity: 0; } }
+  .slice > g { transition: transform .18s cubic-bezier(.2, .9, .3, 1.4); transform-box: view-box; transform-origin: 100px 100px; }
+  .slice path.seg { fill: var(--w-seg); stroke: var(--w-line); stroke-width: .6; transition: fill .14s; }
+  .slice .lbl { fill: var(--w-text); font: 800 10.5px var(--display); text-anchor: middle; dominant-baseline: central; letter-spacing: .02em; pointer-events: none; transition: fill .14s; }
+  .slice .sm { font: 600 5.4px var(--body); letter-spacing: 0; opacity: .75; }
+  .slice .ico { fill: none; stroke: var(--w-text); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; transition: stroke .14s; }
+  .slice.hot path.seg { fill: var(--accent); }
+  .slice.hot .lbl { fill: var(--on-accent); }
+  .slice.hot .ico { stroke: var(--on-accent); }
+  .slice.flash path.seg { animation: flash .5s; }
+  @keyframes flash { 30% { fill: #fff; } }
+  .w-hub { fill: var(--w-hub); stroke: var(--w-line); }
+  .w-ring { fill: none; stroke: var(--accent); stroke-width: .8; stroke-dasharray: 2 3.4; opacity: .4; transform-box: view-box; transform-origin: 100px 100px; animation: spin 18s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hub-name { fill: var(--accent); font: 700 5.6px var(--display); letter-spacing: .14em; text-anchor: middle; }
+  .hub-file { fill: var(--w-text); font: 700 10px var(--body); text-anchor: middle; transition: opacity .2s; }
+  .hub-kind { fill: var(--muted); font: 500 5.4px var(--body); text-anchor: middle; }
+  .ripple { fill: none; stroke: var(--accent); stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: ripple .6s ease-out forwards; pointer-events: none; }
+  @keyframes ripple { from { transform: scale(.2); opacity: 1; } to { transform: scale(2.4); opacity: 0; } }
+
+  .keys { position: absolute; left: 0; bottom: 4%; display: flex; gap: 8px; z-index: 3; }
+  kbd {
+    font: 700 15px/1 var(--mono); color: var(--text); display: inline-block;
+    background: var(--surface-2); border: 1px solid var(--line); border-bottom-width: 4px; border-radius: 10px; padding: 11px 14px;
+    transition: transform .09s, border-bottom-width .09s, background .09s, color .09s;
+  }
+  kbd.down { transform: translateY(3px); border-bottom-width: 1px; background: var(--accent); color: var(--on-accent); }
+
+  .cursor { position: absolute; width: 26px; height: 26px; left: 92%; top: 78%; z-index: 4; pointer-events: none; transition: left .75s cubic-bezier(.45, .05, .25, 1), top .75s cubic-bezier(.45, .05, .25, 1), transform .1s; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .6)); }
+  .cursor.press { transform: scale(.82); }
+  .stage.user .cursor { opacity: 0; }
+
+  .hud {
+    position: absolute; left: 50%; bottom: -2%; transform: translate(-50%, 16px); opacity: 0; z-index: 3;
+    display: flex; align-items: center; gap: 10px; white-space: nowrap; max-width: 100%;
+    background: rgba(20, 20, 16, .96); border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px 8px 8px;
+    font-size: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, .5); transition: transform .35s cubic-bezier(.2, 1.2, .35, 1), opacity .25s;
+  }
+  .hud.on { transform: translate(-50%, 0); opacity: 1; }
+  .hud .badge { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); flex: none; position: relative; }
+  .hud.done .badge { background: var(--accent); color: var(--on-accent); }
+  .hud .ring { position: absolute; inset: 0; }
+  .hud .ring circle { fill: none; stroke-width: 3; }
+  .hud .txt { overflow: hidden; text-overflow: ellipsis; }
+  .hud .txt b { color: var(--accent); font-weight: 700; }
+  .hint { position: absolute; top: 0; right: 0; font-size: 12.5px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+  .hint::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+  /* ---------- ticker ---------- */
+  .ticker { border-block: 1px solid var(--line); padding-block: 18px; display: grid; gap: 12px; overflow: hidden; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+  .track { display: flex; gap: 14px; width: max-content; animation: slide 38s linear infinite; }
+  .track.rev { animation-direction: reverse; animation-duration: 46s; }
+  .ticker:hover .track { animation-play-state: paused; }
+  @keyframes slide { to { transform: translateX(-50%); } }
+  .pill { display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font: 700 14px/1 var(--mono); white-space: nowrap; }
+  .pill .arr { color: var(--accent); }
+
+  /* ---------- sections ---------- */
+  section { padding-block: 80px; }
+  .kicker { font: 600 13px/1 var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+  h2 { font: 900 clamp(28px, 4.2vw, 48px)/1.05 var(--display); letter-spacing: -.03em; margin: 0 0 14px; text-wrap: balance; }
+  .sub { color: var(--muted); margin: 0 0 40px; max-width: 58ch; }
+
+  /* three ways in */
+  .ways { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .way { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; gap: 14px; min-width: 0; transition: border-color .25s, transform .25s; }
+  .way:hover { border-color: rgba(255, 245, 16, .35); transform: translateY(-4px); }
+  .way h3 { margin: 0; font: 700 19px/1.3 var(--body); }
+  .way p { margin: 0; color: var(--muted); font-size: 15.5px; }
+  .demo { height: 150px; border-radius: 14px; background: var(--bg); border: 1px solid var(--line); position: relative; overflow: hidden; }
+  /* demo 1: double tap */
+  .d-tap { display: grid; place-items: center; }
+  .d-tap .k { display: flex; gap: 10px; }
+  .d-tap kbd { animation: tap2 2.4s infinite; }
+  .d-tap kbd:nth-child(2) { animation-delay: .22s; }
+  @keyframes tap2 { 0%, 60%, 100% { transform: none; border-bottom-width: 4px; background: var(--surface-2); color: var(--text); } 66% { transform: translateY(3px); border-bottom-width: 1px; background: var(--accent); color: var(--on-accent); } 74% { transform: none; border-bottom-width: 4px; } }
+  .d-tap .ring { position: absolute; width: 110px; height: 110px; border-radius: 50%; border: 10px solid var(--surface-2); border-top-color: var(--accent); animation: pop 2.4s infinite; }
+  @keyframes pop { 0%, 72% { transform: scale(.3); opacity: 0; } 82% { transform: scale(1.05); opacity: 1; } 95% { transform: scale(1); opacity: 1; } 100% { opacity: 0; } }
+  /* demo 2: ctrl + drag */
+  .d-drag .file { position: absolute; left: 12%; top: 34%; width: 46px; height: 56px; border-radius: 8px; background: #fff; color: #111; font: 800 9px var(--mono); display: grid; place-items: end center; padding-bottom: 7px; box-shadow: 0 6px 14px rgba(0, 0, 0, .5); animation: drag 3.2s infinite cubic-bezier(.45, .05, .25, 1); }
+  .d-drag .file::before { content: ""; position: absolute; inset: 6px 6px 22px; border-radius: 4px; background: linear-gradient(135deg, #3ad, #fd3 60%, #f73); }
+  @keyframes drag { 0%, 10% { transform: none; } 55%, 72% { transform: translate(150px, -6px) rotate(8deg) scale(.85); } 80% { transform: translate(150px, -6px) scale(.2); opacity: 0; } 100% { opacity: 0; } }
+  .d-drag .mini { position: absolute; right: 10%; top: 50%; width: 92px; height: 92px; margin-top: -46px; border-radius: 50%; background: conic-gradient(var(--accent) 0 60deg, var(--surface-2) 60deg 360deg); -webkit-mask: radial-gradient(circle, transparent 40%, #000 41%); mask: radial-gradient(circle, transparent 40%, #000 41%); animation: mini 3.2s infinite; }
+  @keyframes mini { 0%, 18% { transform: scale(.3) rotate(-60deg); opacity: 0; } 32%, 82% { transform: none; opacity: 1; } 92% { transform: scale(1.1); opacity: 0; } 100% { opacity: 0; } }
+  .d-drag kbd { position: absolute; left: 10%; bottom: 10px; font-size: 12px; padding: 6px 9px; border-bottom-width: 1px; transform: translateY(3px); background: var(--accent); color: var(--on-accent); }
+  /* demo 3: right click */
+  .d-menu .menu { position: absolute; left: 22%; top: 18%; width: 62%; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 6px; display: grid; gap: 2px; font-size: 13px; animation: menu 3s infinite; transform-origin: top left; }
+  .d-menu .menu div { padding: 6px 10px; border-radius: 6px; color: var(--muted); }
+  .d-menu .menu .av { color: var(--on-accent); background: var(--accent); font-weight: 700; display: flex; align-items: center; gap: 8px; animation: hl 3s infinite; }
+  @keyframes menu { 0%, 12% { transform: scale(.6); opacity: 0; } 22%, 85% { transform: none; opacity: 1; } 100% { opacity: 0; } }
+  @keyframes hl { 0%, 45% { background: transparent; color: var(--muted); } 52%, 100% { background: var(--accent); color: var(--on-accent); } }
+
+  /* file-type explorer */
+  .explore { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+  .explore > * { min-width: 0; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .tab { font: 600 15px/1 var(--body); padding: 11px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+  .tab:hover { color: var(--text); }
+  .tab[aria-selected="true"] { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+  .tab:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  .kinddesc { color: var(--muted); min-height: 3.2em; margin: 0 0 18px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chip { font: 700 12.5px/1 var(--mono); padding: 8px 10px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line); animation: chip .35s both; animation-delay: calc(var(--i) * 30ms); }
+  .chip.tool { font-family: var(--body); font-size: 13px; color: var(--accent); border-color: rgba(255, 245, 16, .25); background: rgba(255, 245, 16, .06); }
+  @keyframes chip { from { transform: translateY(6px) scale(.9); } }
+  .stage.small { max-width: 440px; }
+
+  /* compress meter */
+  .shrink { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+  .shrink > * { min-width: 0; }
+  .meter { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; display: grid; gap: 18px; }
+  .meter .row { display: grid; gap: 8px; }
+  .meter .lab { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); }
+  .meter .lab b { color: var(--text); font: 700 16px var(--mono); font-variant-numeric: tabular-nums; }
+  .bar { height: 16px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 99px; background: var(--muted); width: 100%; }
+  .bar.after i { background: var(--accent); transition: width 1.6s cubic-bezier(.6, 0, .2, 1); }
+  .meter.go .bar.after i { width: 16%; }
+  .meter .big { font: 900 clamp(34px, 5vw, 56px)/1 var(--display); letter-spacing: -.03em; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .meter .big small { font: 600 15px var(--body); color: var(--muted); letter-spacing: 0; margin-left: 8px; }
+  .replay { justify-self: start; }
+
+  /* theme */
+  .theme { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+  .theme > * { min-width: 0; }
+  .switch { display: inline-flex; padding: 4px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); gap: 4px; margin-bottom: 24px; }
+  .switch button { font: 600 15px/1 var(--body); border: 0; border-radius: 999px; padding: 11px 18px; background: transparent; color: var(--muted); cursor: pointer; transition: background .25s, color .25s; }
+  .switch button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+  .feats { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+  .feats li { display: grid; grid-template-columns: 26px 1fr; gap: 12px; }
+  .feats svg { color: var(--accent); margin-top: 3px; }
+  .feats b { display: block; }
+  .feats span { color: var(--muted); font-size: 15.5px; }
+  .themebox { border-radius: 28px; padding: 6%; transition: background .5s; background: var(--surface); border: 1px solid var(--line); }
+  .themebox.light { background: #f1f1ec; --w-base: #e6e6e0; --w-seg: #ffffff; --w-line: rgba(0, 0, 0, .08); --w-text: #16160f; --w-hub: #f7f7f2; }
+  .themebox.light .hub-name { fill: #6d6900; }
+  .themebox .stage { max-width: 380px; margin: 0 auto; }
+
+  /* install */
+  .install { display: grid; grid-template-columns: 1.2fr .8fr; gap: 30px; align-items: start; }
+  .install > * { min-width: 0; }
+  .install ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; counter-reset: s; }
+  .install li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; counter-increment: s; }
+  .install li::before { content: counter(s); width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font: 800 13px/30px var(--display); text-align: center; }
+  .note { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; font-size: 15px; color: var(--muted); }
+  .note b { color: var(--text); }
+  .note .ss { margin-top: 14px; border-radius: 10px; background: #1964b3; color: #fff; padding: 14px; font-size: 13px; }
+  .note .ss strong { display: block; font-size: 16px; margin-bottom: 6px; }
+  .note .ss u { text-underline-offset: 3px; }
+  .note .ss .run { display: inline-block; margin-top: 10px; border: 1px solid #fff; padding: 5px 12px; animation: blink 1.6s infinite; }
+  @keyframes blink { 50% { background: rgba(255, 255, 255, .25); } }
+
+  /* final */
+  .final { display: grid; place-items: center; padding-block: 90px 70px; text-align: center; gap: 26px; }
+  .orbit { position: relative; width: min(320px, 82vw); aspect-ratio: 1; display: grid; place-items: center; overflow: hidden; border-radius: 50%; }
+  .orbit svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: spin 22s linear infinite; }
+  .orbit text { fill: var(--muted); font: 700 11px var(--mono); letter-spacing: 3.4px; }
+  .orbit .btn { z-index: 1; }
+  footer { border-top: 1px solid var(--line); padding-block: 26px 40px; display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 14px; color: var(--muted); }
+  footer .grow { flex: 1; }
+
+  @media (max-width: 900px) {
+    .hero, .explore, .shrink, .theme, .install { grid-template-columns: 1fr; }
+    .ways { grid-template-columns: 1fr 1fr; }
+    nav .links { display: none; }
+    .hint { display: none; }
+  }
+  @media (max-width: 600px) {
+    .ways { grid-template-columns: 1fr; }
+    .keys kbd { font-size: 13px; padding: 9px 11px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: .001s !important; }
+    .track { animation: none !important; }
+  }
+
+  /* language */
+  .langbtn { font: 700 14px/1 "IBM Plex Sans Arabic", var(--body); border: 1px solid var(--line); background: var(--surface); color: var(--text); border-radius: 999px; padding: 10px 14px; cursor: pointer; transition: border-color .2s, transform .2s; }
+  .langbtn:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .langbtn:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  html[lang="ar"] { --display: "Alexandria", "Unbounded", "Segoe UI", sans-serif; --body: "IBM Plex Sans Arabic", "Figtree", "Segoe UI", sans-serif; }
+  html[lang="ar"] .langbtn { font-family: "Figtree", var(--body); }
+  html[lang="ar"] h1 { letter-spacing: 0; line-height: 1.32; font-size: clamp(40px, 6.2vw, 78px); }
+  html[lang="ar"] h2, html[lang="ar"] .brand, html[lang="ar"] .meter .big { letter-spacing: 0; line-height: 1.4; }
+  .jsize, .jname, .meter .lab b, .meter .lab span, .hud .txt b { direction: ltr; unicode-bidi: isolate; }
+  html[lang="ar"] .eyebrow, html[lang="ar"] .kicker { letter-spacing: 0; font-size: 14px; }
+  html[lang="ar"] .hub-name { letter-spacing: 0; font-size: 6.4px; }
+  html[lang="ar"] .slice .lbl.sm { font-size: 6px; }
+  html[lang="ar"] .pill, html[lang="ar"] .orbit text { font-family: var(--body); letter-spacing: 1px; }
+  html[lang="ar"] .orbit text { font-size: 12px; }
+  html[lang="ar"] .lede { max-width: 36ch; }
+  /* the moving bands always run left to right; the Arabic words inside still read right to left */
+  .ticker, .mega, .track, .mtrack { direction: ltr; }
+  .pill, .mtrack span { unicode-bidi: plaintext; }
+  html[dir="rtl"] .keys { left: auto; right: 0; }
+  html[dir="rtl"] .hint { right: auto; left: 0; }
+  html[dir="rtl"] .install li::before { justify-self: start; }
+
+  /* petal wheel extras */
+  .w-base { fill-opacity: .55; }
+  .num-b { fill: var(--bg); stroke: var(--line); stroke-width: .6; }
+  .num-t { fill: var(--muted); font: 700 5px var(--body); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+  .slice.hot .num-b { fill: var(--on-accent); stroke: var(--on-accent); }
+  .slice.hot .num-t { fill: var(--accent); }
+  .navb { cursor: pointer; }
+  .navb circle { fill: var(--surface-2); stroke: var(--line); stroke-width: .6; transition: fill .15s; }
+  .navb path { fill: none; stroke: var(--w-text); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; transition: stroke .15s; }
+  .navb:hover circle, .navb.press circle { fill: var(--accent); }
+  .navb:hover path, .navb.press path { stroke: var(--on-accent); }
+  .nav-count { fill: var(--muted); font: 700 5px var(--mono); text-anchor: middle; dominant-baseline: central; }
+  .sparks { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+
+  /* rotating word in the headline */
+  .cycle { display: inline-block; color: var(--text); transition: transform .35s cubic-bezier(.2, .9, .3, 1.2), opacity .25s, filter .25s; }
+  .cycle.out { transform: translateY(-.35em) rotateX(70deg); opacity: 0; filter: blur(4px); }
+  .cycle.pre { transform: translateY(.35em) rotateX(-70deg); opacity: 0; filter: blur(4px); transition: none; }
+
+  /* journey: one file, scrolled through five stops */
+  .journey { height: 340vh; padding: 0; position: relative; }
+  .jsticky { position: sticky; top: env(safe-area-inset-top, 0px); min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; padding-block: 40px; }
+  .jsticky > * { min-width: 0; }
+  .jsteps { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 6px; }
+  .jsteps li { display: grid; grid-template-columns: 38px 1fr; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 14px; color: var(--muted); transition: background .3s, color .3s; }
+  .jsteps li b { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); font: 800 12px var(--display); transition: background .3s, color .3s, border-color .3s; }
+  .jsteps li span { font-weight: 600; }
+  .jsteps li.on { background: var(--surface); color: var(--text); }
+  .jsteps li.on b { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+  .jsteps li.done b { border-color: var(--accent); color: var(--accent); }
+  .jprog { height: 4px; border-radius: 4px; background: var(--surface-2); margin-top: 18px; overflow: hidden; }
+  .jprog i { display: block; height: 100%; width: 0; background: var(--accent); }
+  .jcard { justify-self: center; width: min(380px, 100%); background: var(--surface); border: 1px solid var(--line); border-radius: 26px; padding: 22px; display: grid; gap: 16px; box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .7); transition: transform .5s cubic-bezier(.2, 1.1, .35, 1); }
+  .jprev { position: relative; aspect-ratio: 4 / 3; border-radius: 16px; overflow: hidden; background: #f2f2ee; display: grid; place-items: center; }
+  .jphoto { position: absolute; inset: 0; background: radial-gradient(circle at 30% 30%, #ffe27a, transparent 40%), linear-gradient(160deg, #3bc4ff 0%, #6fd3ff 40%, #ffb03b 70%, #ff6a3d 100%); transition: inset .6s cubic-bezier(.2, 1, .35, 1), border-radius .6s, filter .6s, box-shadow .6s; }
+  .jphoto::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 38%; background: linear-gradient(180deg, transparent, rgba(30, 20, 40, .55)); clip-path: polygon(0 60%, 20% 30%, 38% 55%, 58% 20%, 80% 50%, 100% 35%, 100% 100%, 0 100%); }
+  .jcard.page .jphoto { inset: 18% 22% 26% 22%; border-radius: 6px; box-shadow: 0 6px 14px rgba(0, 0, 0, .25); }
+  .jcard.small .jphoto { filter: saturate(.92) contrast(.96); }
+  .jlines { position: absolute; left: 22%; right: 22%; bottom: 10%; display: grid; gap: 5px; opacity: 0; transition: opacity .4s; }
+  .jlines i { height: 5px; border-radius: 3px; background: #d6d6cf; }
+  .jlines i:last-child { width: 60%; }
+  .jcard.page .jlines { opacity: 1; }
+  .jtag { position: absolute; top: 12px; left: 12px; font: 800 13px/1 var(--mono); padding: 7px 10px; border-radius: 8px; background: var(--bg); color: var(--text); transition: background .3s, color .3s; }
+  .jcard.page .jtag { background: #e5484d; color: #fff; }
+  .jname { font: 700 18px/1.25 var(--body); overflow-wrap: anywhere; }
+  .jmeta { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
+  .jsize { font: 700 15px var(--mono); color: var(--text); font-variant-numeric: tabular-nums; }
+  .jbar { height: 8px; border-radius: 8px; background: var(--surface-2); overflow: hidden; }
+  .jbar i { display: block; height: 100%; width: 100%; background: var(--accent); transition: width .7s cubic-bezier(.6, 0, .2, 1); }
+  .jwhere { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; padding: 8px 12px; border-radius: 999px; background: var(--surface-2); justify-self: start; transition: background .3s, color .3s; }
+  .jcard.drive .jwhere { background: var(--accent); color: var(--on-accent); }
+  .jnote { font-size: 15px; color: var(--muted); min-height: 1.4em; }
+
+  /* giant outlined words */
+  .mega { overflow: hidden; padding-block: 30px; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); border-block: 1px solid var(--line); }
+  .mtrack { display: flex; gap: 40px; width: max-content; animation: slide 40s linear infinite; font: 900 clamp(56px, 10vw, 140px)/1 var(--display); letter-spacing: -.04em; white-space: nowrap; }
+  .mtrack span { color: var(--surface-2); }
+  .mtrack span.fill { color: var(--accent); }
+  .mtrack em { font-style: normal; color: var(--accent); }
+
+  @media (max-width: 900px) {
+    .jsticky { grid-template-columns: 1fr; gap: 20px; align-content: center; }
+    .jsteps { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .jsteps li { grid-template-columns: 1fr; justify-items: center; padding: 8px 4px; text-align: center; }
+    .jsteps li span { display: none; }
+    .jcard { width: min(340px, 100%); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="brand" href="#top"><img src="icon.png" alt="">Avio</a>
+    <span class="grow"></span>
+    <div class="links"><a href="#ways" data-i18n="navHow">How it works</a><a href="#formats" data-i18n="navFormats">Formats</a><a href="#install" data-i18n="navInstall">Install</a></div>
+    <button class="langbtn" id="langbtn" type="button" lang="ar">عربي</button>
+    <a class="btn primary small dl" href="https://github.com/ameeraladin-coder/avio/releases/download/v1.2.2/Avio-Setup-1.2.2.exe" rel="noopener" data-i18n="navDownload">Download</a>
+  </nav>
+
+  <header class="hero" id="top">
+    <div>
+      <div class="eyebrow" data-i18n="eyebrow"><span class="dot"></span>Free for Windows 10 &amp; 11</div>
+      <h1 aria-label="Any file. Two key presses." data-i18n="h1" data-i18n-label="h1Label"><span class="line"><span class="word">Any <span class="cycle" id="cycle">file</span>.</span></span><span class="line"><span class="word hl">Two key</span></span><span class="line"><span class="word hl">presses.</span></span></h1>
+      <p class="lede" data-i18n="lede">Convert, compress and share files right from File Explorer. Select a file, tap Ctrl twice, pick what you want.</p>
+      <div class="cta">
+        <a class="btn primary dl" href="https://github.com/ameeraladin-coder/avio/releases/download/v1.2.2/Avio-Setup-1.2.2.exe" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>
+          <span data-i18n="ctaWin">Download for Windows</span>
+        </a>
+        <div class="meta" data-i18n="meta"><b>v1.2.2</b> · <b id="kb">762</b> KB installer · English &amp; العربية</div>
+      </div>
+    </div>
+
+    <div class="stage" id="heroStage" aria-label="Live demo of the Avio wheel. Point at a slice and click to try it.">
+      <div class="hint" data-i18n="hint">Try it: point and click</div>
+      <div class="wheel" id="heroWheel"></div>
+      <div class="keys" aria-hidden="true"><kbd id="k1">Ctrl</kbd><kbd id="k2">Ctrl</kbd></div>
+      <svg class="cursor" id="cursor" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 2l15 11-6.5 1.2L16 21l-3 1.4-3.6-6.8L4 20z" fill="#fff" stroke="#000" stroke-width="1.3" stroke-linejoin="round"/></svg>
+      <canvas class="sparks" id="sparks" aria-hidden="true"></canvas>
+      <div class="hud" id="hud" role="status"><span class="badge" id="hudBadge"></span><span class="txt" id="hudText"></span></div>
+    </div>
+  </header>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="track" id="t1"></div>
+    <div class="track rev" id="t2"></div>
+  </div>
+
+  <section class="journey" id="journey" aria-label="One photo through five steps">
+    <div class="jsticky">
+      <div>
+        <div class="kicker" data-i18n="jKicker">Scroll</div>
+        <h2 data-i18n="jTitle">One photo. Five stops. No apps opened.</h2>
+        <p class="sub" style="margin:0" data-i18n="jSub">Follow an iPhone picture from your phone to your Google Drive, two key presses at a time.</p>
+        <ol class="jsteps" id="jsteps">
+          <li><b>1</b><span data-i18n="j1">Off the iPhone (HEIC)</span></li>
+          <li><b>2</b><span data-i18n="j2">Convert to JPG</span></li>
+          <li><b>3</b><span data-i18n="j3">Compress it</span></li>
+          <li><b>4</b><span data-i18n="j4">Turn it into a PDF</span></li>
+          <li><b>5</b><span data-i18n="j5">Upload to Drive</span></li>
+        </ol>
+        <div class="jprog"><i id="jprog"></i></div>
+      </div>
+      <div class="jcard" id="jcard">
+        <div class="jprev"><div class="jphoto"></div><div class="jlines"><i></i><i></i><i></i></div><span class="jtag" id="jtag">HEIC</span></div>
+        <div class="jname" id="jname">IMG_2048.HEIC</div>
+        <div class="jmeta"><span data-i18n="size">Size</span><span class="jsize" id="jsize">4.2 MB</span></div>
+        <div class="jbar"><i id="jbar"></i></div>
+        <span class="jwhere" id="jwhere">On the iPhone</span>
+        <div class="jnote" id="jnote">Straight from your phone. Windows can't open it.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="mega" aria-hidden="true"><div class="mtrack" id="mega"></div></div>
+
+  <section id="ways">
+    <div class="kicker" data-i18n="navHow">How it works</div>
+    <h2 data-i18n="wTitle">Three ways to open the wheel</h2>
+    <p class="sub" data-i18n="wSub">No app window to open. The wheel appears at your pointer with only the options that fit your files, and saves the result next to the original.</p>
+    <div class="ways">
+      <div class="way">
+        <div class="demo d-tap" aria-hidden="true"><div class="ring"></div><div class="k"><kbd>Ctrl</kbd><kbd>Ctrl</kbd></div></div>
+        <h3 data-i18n="w1t">Select, then tap Ctrl twice</h3>
+        <p data-i18n="w1p">Pick files in File Explorer or on the desktop and tap Ctrl twice, quickly.</p>
+      </div>
+      <div class="way">
+        <div class="demo d-drag" aria-hidden="true"><div class="file">HEIC</div><div class="mini"></div><kbd>Ctrl</kbd></div>
+        <h3 data-i18n="w2t">Hold Ctrl and drag</h3>
+        <p data-i18n="w2p">Drag files, or a picture straight out of your browser, and drop it on a format.</p>
+      </div>
+      <div class="way">
+        <div class="demo d-menu" aria-hidden="true"><div class="menu"><div data-i18n="mOpen">Open</div><div data-i18n="mCopy">Copy</div><div class="av"><img src="icon.png" alt="" width="14" height="14" style="border-radius:3px">Avio</div><div data-i18n="mProps">Properties</div></div></div>
+        <h3 data-i18n="w3t">Right-click → Avio</h3>
+        <p data-i18n="w3p">Every file has an Avio entry in its right-click menu.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="formats">
+    <div class="explore">
+      <div>
+        <div class="kicker" data-i18n="navFormats">Formats</div>
+        <h2 data-i18n="fTitle">One wheel for every kind of file</h2>
+        <div class="tabs" role="tablist" id="tabs"></div>
+        <p class="kinddesc" id="kinddesc"></p>
+        <div class="chips" id="chips"></div>
+      </div>
+      <div class="stage small" id="kindStage"><div class="wheel" id="kindWheel"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shrink">
+      <div>
+        <div class="kicker" data-i18n="cKicker">Compress</div>
+        <h2 data-i18n="cTitle">Big files, small files</h2>
+        <p class="sub" data-i18n="cSub">Photos, PDFs, videos and Office files shrink in one click. If a PDF won't get smaller, Avio tries a second, stronger pass.</p>
+        <button class="btn ghost small replay" id="replay" type="button" data-i18n="replay">Play again</button>
+      </div>
+      <div class="meter" id="meter">
+        <div class="row"><div class="lab"><span>report.pdf</span><b>13.0 MB</b></div><div class="bar"><i></i></div></div>
+        <div class="row"><div class="lab"><span>report-compressed.pdf</span><b id="after">13.0 MB</b></div><div class="bar after"><i></i></div></div>
+        <div class="big" id="pct">100%<small>of the original</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="theme">
+      <div>
+        <div class="kicker" data-i18n="tKicker">Yours</div>
+        <h2 data-i18n="tTitle">Light, dark, your colour</h2>
+        <div class="switch" role="group" aria-label="Wheel theme">
+          <button type="button" aria-pressed="true" data-t="dark" data-i18n="dark">Dark</button>
+          <button type="button" aria-pressed="false" data-t="light" data-i18n="light">Light</button>
+        </div>
+        <ul class="feats">
+          <li><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 16.6A5 5 0 0 0 18 7h-1.3A8 8 0 1 0 4 15.3M12 12v9M8 16l4-4 4 4"/></svg><div data-i18n="f1"><b>Google Drive in one step</b><span>Into this month's folder, compressed first if you like.</span></div></li>
+          <li><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg><div data-i18n="f2"><b>Updates itself</b><span>A notification says when a new version is ready.</span></div></li>
+          <li><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3h6v8H4zM14 3h6v8h-6zM4 13h6v8H4zM14 13h6v8h-6z"/></svg><div data-i18n="f3"><b>PDF pages, watermark, password</b><span>Reorder, rotate, split and protect without another app.</span></div></li>
+          <li><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14M9 4v4M7 8c0 5 4 8 9 9M17 8c-1 4-4 7-9 9"/></svg><div data-i18n="f4"><b>English and العربية</b><span>The whole app, right to left in Arabic.</span></div></li>
+        </ul>
+      </div>
+      <div class="themebox" id="themebox"><div class="stage" id="themeStage"><div class="wheel" id="themeWheel"></div></div></div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="install">
+      <div>
+        <div class="kicker" data-i18n="navInstall">Install</div>
+        <h2 data-i18n="iTitle">Ready in a minute</h2>
+        <ol>
+          <li><span data-i18n="i1">Click <b>Download for Windows</b> and open <b>Avio-Setup-1.2.2.exe</b>.</span></li>
+          <li><span data-i18n="i2">Keep the internet on. The small installer fetches the rest of Avio (about 100 MB).</span></li>
+          <li><span data-i18n="i3">Look for the yellow icon next to the clock, select a file and tap Ctrl twice.</span></li>
+        </ol>
+      </div>
+      <div class="note">
+        <span data-i18n="note"><b>See a blue "Windows protected your PC" box?</b> Windows shows it for new apps without a paid certificate. Click <b>More info</b>, then <b>Run anyway</b>.</span>
+        <div class="ss" aria-hidden="true"><strong>Windows protected your PC</strong>Microsoft Defender SmartScreen prevented an unrecognized app from starting. <u>More info</u><br><span class="run">Run anyway</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="final">
+    <div class="orbit">
+      <svg viewBox="0 0 200 200" aria-hidden="true"><defs><path id="circ" d="M100 100m-84 0a84 84 0 1 1 168 0a84 84 0 1 1-168 0"/></defs><text><textPath href="#circ" data-i18n="orbit">FREE · WINDOWS 10 &amp; 11 · TWO KEY PRESSES · AVIO · FREE · WINDOWS 10 &amp; 11 ·</textPath></text></svg>
+      <a class="btn primary dl" href="https://github.com/ameeraladin-coder/avio/releases/download/v1.2.2/Avio-Setup-1.2.2.exe" rel="noopener">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>
+        <span data-i18n="ctaFinal">Download Avio</span>
+      </a>
+    </div>
+  </div>
+
+  <footer>
+    <span data-i18n="foot1">© 2026 Avio · MIT License</span>
+    <span class="grow"></span>
+    <span data-i18n="foot2">Avio for Windows · Version 1.2.2</span>
+  </footer>
+</div>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- language ----------
+  const AR = {
+    navHow: 'طريقة العمل', navFormats: 'الصيغ', navInstall: 'التثبيت', navDownload: 'تحميل',
+    eyebrow: '<span class="dot"></span>مجاني لويندوز 10 و 11',
+    h1: '<span class="line"><span class="word">أي <span class="cycle" id="cycle">ملف</span>.</span></span><span class="line"><span class="word hl">بضغطتين</span></span><span class="line"><span class="word hl">فقط.</span></span>',
+    h1Label: 'أي ملف. بضغطتين فقط.',
+    lede: 'حوّل واضغط وشارك ملفاتك من مستكشف الملفات مباشرة. حدّد الملف، اضغط Ctrl مرتين، واختر ما تريد.',
+    ctaWin: 'تحميل لويندوز',
+    meta: '<b>v1.2.2</b> · مثبّت <b id="kb">762</b> كيلوبايت · العربية و English',
+    hint: 'جرّبها: أشِر واضغط',
+    jKicker: 'مرّر للأسفل', jTitle: 'صورة واحدة. خمس محطات. بدون فتح أي برنامج.',
+    jSub: 'تابع صورة من الآيفون حتى تصل إلى Google Drive، بضغطتين في كل خطوة.',
+    j1: 'من الآيفون (HEIC)', j2: 'تحويل إلى JPG', j3: 'ضغط الصورة', j4: 'تحويلها إلى PDF', j5: 'رفعها إلى Drive', size: 'الحجم',
+    wTitle: 'ثلاث طرق لفتح الدائرة',
+    wSub: 'بدون فتح أي نافذة. تظهر الدائرة عند المؤشر بالخيارات المناسبة لملفاتك فقط، وتحفظ النتيجة بجانب الملف الأصلي.',
+    w1t: 'حدّد ثم اضغط Ctrl مرتين', w1p: 'اختر الملفات في مستكشف الملفات أو على سطح المكتب، واضغط Ctrl مرتين بسرعة.',
+    w2t: 'اضغط Ctrl واسحب', w2p: 'اسحب الملفات، أو صورة من المتصفح مباشرة، وأفلتها على الصيغة.',
+    w3t: 'الزر الأيمن ← Avio', w3p: 'لكل ملف خيار Avio في قائمة الزر الأيمن.',
+    mOpen: 'فتح', mCopy: 'نسخ', mProps: 'خصائص',
+    fTitle: 'دائرة واحدة لكل أنواع الملفات',
+    cKicker: 'الضغط', cTitle: 'ملفات كبيرة، ملفات صغيرة',
+    cSub: 'الصور وملفات PDF والفيديو وملفات أوفيس تصغر بضغطة واحدة. وإذا لم يصغر ملف PDF، يجرّب Avio مرحلة ثانية أقوى.',
+    replay: 'أعد التشغيل',
+    tKicker: 'على ذوقك', tTitle: 'فاتح، داكن، وبلونك', dark: 'داكن', light: 'فاتح',
+    f1: '<b>Google Drive بخطوة واحدة</b><span>إلى مجلد هذا الشهر، ومضغوطة أولًا إذا أردت.</span>',
+    f2: '<b>يتحدّث تلقائيًا</b><span>يصلك إشعار عندما يجهز إصدار جديد.</span>',
+    f3: '<b>صفحات PDF وعلامة مائية وكلمة سر</b><span>رتّب ودوّر وقسّم واحمِ ملفاتك بدون برنامج آخر.</span>',
+    f4: '<b>العربية و English</b><span>التطبيق بالكامل، ومن اليمين لليسار بالعربية.</span>',
+    iTitle: 'جاهز خلال دقيقة',
+    i1: 'اضغط <b>تحميل لويندوز</b> وافتح <b>Avio-Setup-1.2.2.exe</b>.',
+    i2: 'أبقِ الإنترنت متصلًا، فالمثبّت الصغير ينزّل بقية Avio (حوالي 100 ميجابايت).',
+    i3: 'ابحث عن الأيقونة الصفراء بجانب الساعة، حدّد ملفًا واضغط Ctrl مرتين.',
+    note: '<b>ظهرت لك نافذة زرقاء "Windows protected your PC"؟</b> يعرضها ويندوز للتطبيقات الجديدة التي لا تملك شهادة مدفوعة. اضغط <b>More info</b> (معلومات إضافية) ثم <b>Run anyway</b> (التشغيل على أي حال).',
+    orbit: 'مجاني · ويندوز 10 و 11 · بضغطتين · AVIO · مجاني · ويندوز 10 و 11 · بضغطتين ·',
+    ctaFinal: 'حمّل Avio', foot1: '© 2026 Avio · رخصة MIT', foot2: 'Avio لويندوز · الإصدار 1.2.2',
+  };
+  // short labels used inside the wheels, chips and messages
+  const AR_WORDS = {
+    Pictures: 'صور', Video: 'فيديو', Audio: 'صوت', Documents: 'مستندات', Subtitles: 'ترجمة',
+    Icon: 'أيقونة', Text: 'نص', Compress: 'ضغط', Crop: 'قص', Resize: 'تغيير الحجم', Rotate: 'تدوير', Grayscale: 'أبيض وأسود',
+    'Remove metadata': 'حذف البيانات', Merge: 'دمج', Split: 'تقسيم', 'Reorder pages': 'ترتيب الصفحات', Watermark: 'علامة مائية',
+    Password: 'كلمة سر', Trim: 'قص المقطع', Mute: 'كتم الصوت', 'Subtitles → SRT': 'الترجمة ← SRT', 'Compress Office files': 'ضغط ملفات أوفيس',
+    'Upload to Drive': 'رفع إلى Drive', Pages: 'الصفحات', Drive: 'درايف', Copy: 'نسخ', Shelf: 'رف عائم', Move: 'نقل', 'Copy path': 'نسخ المسار',
+    CONVERT: 'تحويل', TOOLS: 'أدوات', SHARE: 'مشاركة', 'Merge PDFs': 'دمج PDF',
+  };
+  let lang = 'en';
+  const tx = (s) => (lang === 'ar' ? AR_WORDS[s] ?? s : s);
+  const DIR = () => (lang === 'ar' ? -1 : 1); // the wheel turns counter-clockwise in Arabic, like the app
+  const NS = 'http://www.w3.org/2000/svg';
+  const C = 100, R_OUT = 97, R_IN = 44, GAP = 4.2, CORNER = 7, R_MID = (R_OUT + R_IN) / 2;
+  const ICONS = {
+    compress: 'M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7',
+    crop: 'M6 2v14a2 2 0 0 0 2 2h14M18 22V8a2 2 0 0 0-2-2H2',
+    trim: 'M6 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM6 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12',
+    pages: 'M4 3h6v8H4zM14 3h6v8h-6zM4 13h6v8H4zM14 13h6v8h-6z',
+    merge: 'M6 3v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3M12 14v7',
+    drive: 'M20 16.6A5 5 0 0 0 18 7h-1.3A8 8 0 1 0 4 15.3M12 12v9M8 16l4-4 4 4',
+    zip: 'M21 8v13H3V8M1 3h22v5H1zM10 12h4',
+    copy: 'M9 9h11v11H9zM5 15H4V4h11v1',
+    resize: 'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7',
+    mute: 'M11 5 6 9H2v6h4l5 4V5ZM22 9l-6 6M16 9l6 6',
+    gray: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20ZM12 2v20',
+    shelf: 'M22 12h-6l-2 3h-4l-2-3H2M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1Z',
+    move: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2ZM8 14h8M13 11l3 3-3 3',
+    path: 'M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7',
+  };
+
+  // Kinds of files, what their wheel shows, and what a pick produces.
+  const KINDS = {
+    image: { tab: 'Pictures', file: 'trip.heic', kind: 'Pictures', desc: 'iPhone HEIC, JPG, PNG, WEBP, GIF, TIFF and more.',
+      items: [['JPG'], ['PNG'], ['WEBP'], ['PDF'], ['AVIF'], ['ICO', 'Icon'], [null, 'Compress', 'compress'], [null, 'Crop', 'crop']],
+      tools: ['Compress', 'Crop', 'Resize', 'Rotate', 'Grayscale', 'Remove metadata'] },
+    pdf: { tab: 'PDF', file: 'report.pdf', kind: 'PDF', desc: 'One file or a stack of them.',
+      items: [['JPG'], ['PNG'], ['TXT', 'Text'], [null, 'Compress', 'compress'], [null, 'Pages', 'pages'], [null, 'Merge', 'merge']],
+      tools: ['Compress', 'Merge', 'Split', 'Reorder pages', 'Watermark', 'Password'] },
+    video: { tab: 'Video', file: 'clip.mov', kind: 'Video', desc: 'MP4, MOV, MKV, AVI, WEBM and more.',
+      items: [['MP4'], ['GIF'], ['MP3'], ['WEBM'], ['720p'], ['HEVC'], [null, 'Trim', 'trim'], [null, 'Mute', 'mute']],
+      tools: ['Compress', 'Trim', 'Mute', 'Subtitles → SRT'] },
+    audio: { tab: 'Audio', file: 'voice.wav', kind: 'Audio', desc: 'MP3, WAV, M4A, FLAC, OGG and more.',
+      items: [['MP3'], ['M4A'], ['FLAC'], ['OGG'], ['OPUS'], [null, 'Trim', 'trim']],
+      tools: ['Compress', 'Trim'] },
+    document: { tab: 'Documents', file: 'letter.docx', kind: 'Documents', desc: 'Word, PowerPoint, Excel, Markdown, HTML and text.',
+      items: [['PDF'], ['TXT', 'Text'], [null, 'Compress', 'compress'], [null, 'ZIP', 'zip'], [null, 'Drive', 'drive']],
+      tools: ['Compress Office files', 'ZIP'] },
+    subtitle: { tab: 'Subtitles', file: 'movie.srt', kind: 'Subtitles', desc: 'SRT, WebVTT and ASS, in any language.',
+      items: [['VTT'], ['ASS'], ['SRT'], [null, 'Copy', 'copy'], [null, 'Drive', 'drive']],
+      tools: ['ZIP', 'Upload to Drive'] },
+  };
+  // The other two wheels: Tools (per kind) and Share (same for everything).
+  const T = (label, icon) => [null, label, icon];
+  const TOOLW = {
+    image: [T('Compress', 'compress'), T('Crop', 'crop'), T('Resize', 'resize'), T('Grayscale', 'gray'), T('ZIP', 'zip')],
+    pdf: [T('Compress', 'compress'), T('Pages', 'pages'), T('Merge', 'merge'), T('ZIP', 'zip')],
+    video: [T('Compress', 'compress'), T('Trim', 'trim'), T('Mute', 'mute'), T('ZIP', 'zip')],
+    audio: [T('Compress', 'compress'), T('Trim', 'trim'), T('ZIP', 'zip')],
+    document: [T('Compress', 'compress'), T('ZIP', 'zip')],
+    subtitle: [T('ZIP', 'zip'), T('Drive', 'drive')],
+  };
+  const SHAREW = [T('Drive', 'drive'), T('Copy', 'copy'), T('Shelf', 'shelf'), T('Move', 'move'), T('Copy path', 'path')];
+  const WHEEL_NAMES = ['CONVERT', 'TOOLS', 'SHARE'];
+  const wheelItems = (kind, w) => [KINDS[kind].items, TOOLW[kind], SHAREW][w];
+  const AR_DESC = {
+    image: 'صور الآيفون HEIC وJPG وPNG وWEBP وGIF وTIFF وغيرها.', pdf: 'ملف واحد أو مجموعة ملفات.',
+    video: 'MP4 وMOV وMKV وAVI وWEBM وغيرها.', audio: 'MP3 وWAV وM4A وFLAC وOGG وغيرها.',
+    document: 'Word وPowerPoint وExcel وMarkdown وHTML والنصوص.', subtitle: 'SRT وWebVTT وASS بأي لغة.',
+  };
+  const SIZES = { image: ['4.2 MB', '680 KB'], pdf: ['13 MB', '2.1 MB'], video: ['86 MB', '9.4 MB'], audio: ['31 MB', '4.8 MB'], document: ['7.6 MB', '1.9 MB'], subtitle: ['42 KB', '40 KB'] };
+
+  const el = (tag, attrs = {}, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (parent) parent.append(e);
+    return e;
+  };
+  const pt = (r, a) => [C + r * Math.sin(a), C - r * Math.cos(a)];
+  // a petal: an annular slice with its four corners rounded (the app draws the same shape)
+  function sector(a0, a1, ro, ri) {
+    const go = GAP / 2 / ro, gi = GAP / 2 / ri, k = Math.min(CORNER, (ro - ri) / 3);
+    const oa0 = a0 + go, oa1 = a1 - go, ia0 = a0 + gi, ia1 = a1 - gi, ko = k / ro, ki = k / ri;
+    const large = oa1 - oa0 - 2 * ko > Math.PI ? 1 : 0;
+    const P = (r, a) => pt(r, a).join(' ');
+    const bend = (gi - go) * (k / (ro - ri));
+    return `M${P(ro, oa0 + ko)}A${ro} ${ro} 0 ${large} 1 ${P(ro, oa1 - ko)}Q${P(ro, oa1)} ${P(ro - k, oa1 - bend)}L${P(ri + k, ia1)}Q${P(ri, ia1)} ${P(ri, ia1 - ki)}A${ri} ${ri} 0 ${large} 0 ${P(ri, ia0 + ki)}Q${P(ri, ia0)} ${P(ri + k, ia0)}L${P(ro - k, oa0 + bend)}Q${P(ro, oa0)} ${P(ro, oa0 + ko)}Z`;
+  }
+
+  // The Avio wheel, drawn the same way the app draws it: petals, number badges, ‹ 1/3 › to switch wheels.
+  class Wheel {
+    constructor(host, { onPick } = {}) {
+      this.host = host;
+      this.onPick = onPick;
+      this.svg = el('svg', { viewBox: '0 0 200 200', role: 'img' }, host);
+      el('circle', { class: 'w-base', cx: C, cy: C, r: 99 }, this.svg);
+      this.slices = el('g', {}, this.svg);
+      this.fx = el('g', {}, this.svg);
+      el('circle', { class: 'w-hub', cx: C, cy: C, r: 37 }, this.svg);
+      el('circle', { class: 'w-ring', cx: C, cy: C, r: 40.5 }, this.svg);
+      this.tName = el('text', { class: 'hub-name', x: C, y: 80 }, this.svg);
+      this.tFile = el('text', { class: 'hub-file', x: C, y: 96 }, this.svg);
+      this.tKind = el('text', { class: 'hub-kind', x: C, y: 106 }, this.svg);
+      const nav = (dir, x) => {
+        const g = el('g', { class: 'navb', role: 'button', tabindex: 0, 'aria-label': dir > 0 ? 'Next wheel' : 'Previous wheel' }, this.svg);
+        el('circle', { cx: x, cy: 120, r: 6.2 }, g);
+        el('path', { d: dir > 0 ? `M${x - 1.2} 117.4l2.6 2.6-2.6 2.6` : `M${x + 1.2} 117.4l-2.6 2.6 2.6 2.6` }, g);
+        const go = (e) => { e.stopPropagation(); this.setWheel(this.w + dir); if (this.onSwitch) this.onSwitch(); };
+        g.addEventListener('click', go);
+        g.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && go(e));
+        return g;
+      };
+      this.prev = nav(-1, 84);
+      this.next = nav(1, 116);
+      this.tCount = el('text', { class: 'nav-count', x: C, y: 120.4 }, this.svg);
+      this.hot = -1;
+      this.w = 0;
+      host.addEventListener('pointermove', (e) => this.user && this.setHot(this.indexAt(e.clientX, e.clientY)));
+      host.addEventListener('pointerleave', () => this.user && this.setHot(-1));
+      host.addEventListener('click', (e) => {
+        const i = this.indexAt(e.clientX, e.clientY);
+        if (i >= 0 && this.onPick) this.onPick(i, true);
+      });
+    }
+    set(kind, w = 0) {
+      this.kind = kind;
+      this.setWheel(w);
+    }
+    setWheel(w) {
+      this.w = (w + 3) % 3;
+      const items = wheelItems(this.kind, this.w);
+      this.items = items;
+      this.slices.replaceChildren();
+      const n = items.length, step = 2 * Math.PI / n;
+      items.forEach(([fmt, label, icon], i) => {
+        const mid = DIR() * step * i;
+        const g = el('g', { class: 'slice', style: `--i:${i}` }, this.slices);
+        const inner = el('g', {}, g);
+        el('path', { class: 'seg', d: sector(mid - step / 2, mid + step / 2, R_OUT, R_IN) }, inner);
+        const [x, y] = pt(R_MID, mid);
+        if (fmt) {
+          el('text', { class: 'lbl', x, y: label ? y - 3 : y }, inner).textContent = fmt;
+          if (label) el('text', { class: 'lbl sm', x, y: y + 8 }, inner).textContent = tx(label);
+        } else {
+          const ic = el('path', { class: 'ico', d: ICONS[icon], transform: `translate(${x - 7.2} ${y - 11}) scale(.6)` }, inner);
+          ic.style.strokeWidth = 3.2;
+          el('text', { class: 'lbl sm', x, y: y + 8 }, inner).textContent = tx(label);
+        }
+        const [bx, by] = pt(R_OUT - 8, mid + DIR() * Math.min(step / 2 - 0.16, 0.42));
+        el('circle', { class: 'num-b', cx: bx, cy: by, r: 4.6 }, inner);
+        el('text', { class: 'num-t', x: bx, y: by }, inner).textContent = i + 1;
+        g.dataset.mid = mid;
+      });
+      this.tName.textContent = tx(WHEEL_NAMES[this.w]);
+      this.tFile.textContent = KINDS[this.kind].file;
+      this.tKind.textContent = tx(KINDS[this.kind].kind);
+      this.tCount.textContent = `${this.w + 1}/3`;
+      this.hot = -1;
+    }
+    setHot(i) {
+      if (i === this.hot) return;
+      this.hot = i;
+      [...this.slices.children].forEach((g, k) => {
+        const on = k === i;
+        g.classList.toggle('hot', on);
+        const [dx, dy] = pt(5, +g.dataset.mid);
+        g.firstChild.style.transform = on ? `translate(${dx - C}px, ${dy - C}px)` : '';
+      });
+      this.tFile.textContent = i >= 0 ? this.label(i) : KINDS[this.kind].file;
+    }
+    label(i) {
+      const [fmt, label] = this.items[i];
+      return fmt ? (label && fmt.length < 4 && label !== 'Icon' ? tx(label) : fmt) : tx(label);
+    }
+    indexAt(cx, cy) {
+      const r = this.svg.getBoundingClientRect();
+      const x = ((cx - r.left) / r.width) * 200 - C, y = ((cy - r.top) / r.height) * 200 - C;
+      const d = Math.hypot(x, y);
+      if (d < R_IN - 4 || d > R_OUT + 6) return -1;
+      const n = this.items.length;
+      const a = (DIR() * Math.atan2(x, -y) + 2 * Math.PI + Math.PI / n) % (2 * Math.PI);
+      return Math.floor(a / (2 * Math.PI / n)) % n;
+    }
+    // point inside slice i (or on a nav arrow), as a fraction of the host box
+    point(i, r = R_MID + 8) {
+      if (i === 'next') return [116 / 200, 121 / 200];
+      const n = this.items.length;
+      const [x, y] = pt(r, DIR() * ((2 * Math.PI / n) * i + 0.12));
+      return [x / 200, y / 200];
+    }
+    center(i) {
+      const [x, y] = pt(R_MID, DIR() * (2 * Math.PI / this.items.length) * i);
+      return [x / 200, y / 200];
+    }
+    flash(i) {
+      const g = this.slices.children[i];
+      if (!g) return;
+      g.classList.remove('flash');
+      void g.getBoundingClientRect();
+      g.classList.add('flash');
+      const [x, y] = pt(R_MID, +g.dataset.mid);
+      const c = el('circle', { class: 'ripple', cx: x, cy: y, r: 10 }, this.fx);
+      setTimeout(() => c.remove(), 650);
+    }
+  }
+
+  const sleep = (ms) => new Promise((r) => setTimeout(r, reduce ? 0 : ms));
+
+  // ---------- hero: the wheel plays itself until you reach for it ----------
+  const stage = document.getElementById('heroStage');
+  const wheelHost = document.getElementById('heroWheel');
+  const cursor = document.getElementById('cursor');
+  const hud = document.getElementById('hud');
+  const hudText = document.getElementById('hudText');
+  const hudBadge = document.getElementById('hudBadge');
+  const keys = [document.getElementById('k1'), document.getElementById('k2')];
+
+  const hero = new Wheel(wheelHost, { onPick: (i, byUser) => byUser && convert(i) });
+  hero.set('image');
+
+  const kb = (s) => parseFloat(s) * (/MB/.test(s) ? 1024 : 1);
+  function resultText(kind, item) {
+    return lang === 'ar' ? resultTextAr(kind, item) : resultTextEn(kind, item);
+  }
+  function resultTextAr(kind, item) {
+    const base = KINDS[kind].file.replace(/\.[^.]+$/, '');
+    const [fmt, label] = item;
+    const [from, to] = SIZES[kind];
+    const saved = (n) => `حُفظ <b dir="ltr">${n}</b>`;
+    if (fmt) {
+      const ext = fmt === '720p' || fmt === 'HEVC' ? 'mp4' : fmt.toLowerCase();
+      return saved(`${base}${fmt === '720p' ? '-720p' : fmt === 'HEVC' ? '-hevc' : ''}.${ext}`);
+    }
+    if (label === 'Compress') return `<b dir="ltr">${from} → ${to}</b> · ${Math.max(1, Math.round((kb(to) / kb(from)) * 100))}٪ من الأصلي`;
+    if (label === 'Drive') return 'رُفع إلى <b>Drive › نوفمبر</b>';
+    if (label === 'Copy') return '<b>تم النسخ</b>، الصقه أينما تريد';
+    if (label === 'ZIP') return saved(`${base}.zip`);
+    if (label === 'Grayscale') return saved(`${base}-gray.jpg`);
+    if (label === 'Resize') return saved(`${base}-1920x1440.jpg`);
+    if (label === 'Shelf') return 'أُضيف إلى <b>الرف</b>';
+    if (label === 'Move') return 'نُقل إلى <b>المستندات</b>';
+    if (label === 'Copy path') return '<b>نُسخ المسار</b>';
+    if (label === 'Mute') return saved(`${base}-muted.mov`);
+    if (label === 'Merge') return saved(`${base}-merged.pdf`);
+    return `فُتحت نافذة <b>${tx(label)}</b>`;
+  }
+  function resultTextEn(kind, item) {
+    const base = KINDS[kind].file.replace(/\.[^.]+$/, '');
+    const [fmt, label] = item;
+    const [from, to] = SIZES[kind];
+    if (fmt) {
+      const ext = fmt === '720p' ? 'mp4' : fmt === 'HEVC' ? 'mp4' : fmt.toLowerCase();
+      return `Saved <b>${base}${fmt === '720p' ? '-720p' : fmt === 'HEVC' ? '-hevc' : ''}.${ext}</b>`;
+    }
+    if (label === 'Compress') return `<b>${from} → ${to}</b> · ${Math.max(1, Math.round((kb(to) / kb(from)) * 100))}% of the original`;
+    if (label === 'Drive') return 'Uploaded to <b>Drive › November</b>';
+    if (label === 'Copy') return '<b>Copied</b>. Paste it anywhere';
+    if (label === 'ZIP') return `Saved <b>${base}.zip</b>`;
+    if (label === 'Grayscale') return `Saved <b>${base}-gray.jpg</b>`;
+    if (label === 'Resize') return `Saved <b>${base}-1920x1440.jpg</b>`;
+    if (label === 'Shelf') return 'Added to the <b>shelf</b>';
+    if (label === 'Move') return 'Moved to <b>Documents</b>';
+    if (label === 'Copy path') return '<b>Path copied</b>';
+    if (label === 'Mute') return `Saved <b>${base}-muted.mov</b>`;
+    if (label === 'Merge') return `Saved <b>${base}-merged.pdf</b>`;
+    return `<b>${label}</b> window opened`;
+  }
+
+  function ring(f) {
+    const r = 12, c = 2 * Math.PI * r;
+    return `<svg class="ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="${r}" stroke="#34342a"/><circle cx="14" cy="14" r="${r}" stroke="#fff510" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - f)}" transform="rotate(-90 14 14)" stroke-linecap="round"/></svg>`;
+  }
+  const CHECK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+  let busy = false;
+  async function convert(i, demo = false) {
+    if (busy) return;
+    busy = true;
+    hero.flash(i);
+    hud.className = 'hud on';
+    hudText.textContent = lang === 'ar' ? 'جاري التحويل…' : 'Converting…';
+    for (let p = 0; p <= 1.001; p += 0.1) {
+      hudBadge.innerHTML = ring(p);
+      await sleep(70);
+    }
+    hud.className = 'hud on done';
+    hudBadge.innerHTML = CHECK;
+    hudText.innerHTML = resultText(hero.kind, hero.items[i]);
+    burst(...hero.center(i));
+    await sleep(demo ? 1500 : 2200);
+    hud.className = 'hud';
+    busy = false;
+  }
+
+  // a little burst of sparks when a conversion finishes
+  const sparks = document.getElementById('sparks');
+  const sctx = sparks.getContext('2d');
+  let parts = [];
+  function burst(fx, fy) {
+    if (reduce) return;
+    const r = sparks.getBoundingClientRect();
+    sparks.width = r.width * devicePixelRatio;
+    sparks.height = r.height * devicePixelRatio;
+    const ox = (0.06 + fx * 0.88) * sparks.width, oy = (0.06 + fy * 0.88) * sparks.height;
+    for (let k = 0; k < 34; k++) {
+      const a = Math.random() * Math.PI * 2, v = (2 + Math.random() * 5) * devicePixelRatio;
+      parts.push({ x: ox, y: oy, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 2 * devicePixelRatio, life: 1, s: (2 + Math.random() * 3) * devicePixelRatio, c: Math.random() < .75 ? '#fff510' : '#ffffff' });
+    }
+    if (parts.length === 34) requestAnimationFrame(tick);
+  }
+  function tick() {
+    sctx.clearRect(0, 0, sparks.width, sparks.height);
+    parts = parts.filter((q) => q.life > 0);
+    for (const q of parts) {
+      q.x += q.vx; q.y += q.vy; q.vy += .18 * devicePixelRatio; q.vx *= .98; q.life -= .022;
+      sctx.globalAlpha = Math.max(0, q.life);
+      sctx.fillStyle = q.c;
+      sctx.fillRect(q.x, q.y, q.s, q.s);
+    }
+    if (parts.length) requestAnimationFrame(tick);
+  }
+
+  function moveCursor(fx, fy) {
+    cursor.style.left = `${6 + fx * 88}%`;
+    cursor.style.top = `${6 + fy * 88}%`;
+  }
+
+  async function tapKeys() {
+    for (const k of keys) {
+      k.classList.add('down');
+      await sleep(110);
+      k.classList.remove('down');
+      await sleep(90);
+    }
+  }
+
+  // [kind, wheel to switch to with the › arrow, slice]
+  const SCRIPT = [['image', 0, 1], ['pdf', 1, 0], ['video', 0, 1], ['image', 2, 0], ['audio', 0, 2]];
+  let token = 0;
+  async function demo() {
+    const my = ++token;
+    for (let s = 0; ; s = (s + 1) % SCRIPT.length) {
+      const [kind, wheel, pick] = SCRIPT[s];
+      wheelHost.classList.add('closed');
+      moveCursor(.5, .5);
+      await sleep(500);
+      if (my !== token) return;
+      hero.set(kind);
+      await tapKeys();
+      wheelHost.classList.remove('closed');
+      await sleep(900);
+      if (my !== token) return;
+      for (let w = 0; w < wheel; w++) {
+        const [ax, ay] = hero.point('next');
+        moveCursor(ax, ay);
+        await sleep(700);
+        if (my !== token) return;
+        hero.next.classList.add('press');
+        cursor.classList.add('press');
+        await sleep(140);
+        cursor.classList.remove('press');
+        hero.next.classList.remove('press');
+        hero.setWheel(hero.w + 1);
+        await sleep(650);
+        if (my !== token) return;
+      }
+      const [fx, fy] = hero.point(pick);
+      moveCursor(fx, fy);
+      await sleep(500);
+      hero.setHot(pick);
+      await sleep(450);
+      if (my !== token) return;
+      cursor.classList.add('press');
+      await sleep(120);
+      cursor.classList.remove('press');
+      await convert(pick, true);
+      if (my !== token) return;
+      hero.setHot(-1);
+      moveCursor(.98, .9);
+      await sleep(400);
+    }
+  }
+
+  let resumeTimer;
+  stage.addEventListener('pointerenter', () => {
+    token++;
+    clearTimeout(resumeTimer);
+    stage.classList.add('user');
+    wheelHost.classList.remove('closed');
+    hero.user = true;
+  });
+  stage.addEventListener('pointerleave', () => {
+    hero.user = false;
+    hero.setHot(-1);
+    resumeTimer = setTimeout(() => {
+      stage.classList.remove('user');
+      if (!reduce) demo();
+    }, 2500);
+  });
+  if (!reduce) setTimeout(demo, 1200);
+  else hero.setHot(1);
+
+  // ---------- ticker ----------
+  const PAIRS = ['HEIC → JPG', 'MOV → MP4', 'PDF → JPG', 'MP4 → GIF', 'WAV → MP3', 'DOCX → PDF', 'PNG → WEBP', 'MKV → 720p', 'SRT → VTT', 'JPG → ICO', 'FLAC → M4A', 'PNG → AVIF'];
+  const TOOLS = ['13 MB → 2.1 MB', 'Trim', 'Crop', 'Watermark', 'Password', 'Merge PDFs', 'Split', 'Resize', 'Remove metadata', 'Upload to Drive', 'Grayscale', 'Mute'];
+  const fill = (id, list) => {
+    const t = document.getElementById(id);
+    const html = list.map((p) => `<span class="pill">${p.replace('→', '<span class="arr">→</span>')}</span>`).join('');
+    t.innerHTML = html + html;
+  };
+  const fillTickers = () => {
+    fill('t1', PAIRS);
+    fill('t2', TOOLS.map((x) => (x.includes('MB') ? x : tx(x))));
+  };
+  fillTickers();
+
+  // ---------- file-type explorer ----------
+  const kindWheel = new Wheel(document.getElementById('kindWheel'), { onPick: (i) => kindWheel.flash(i) });
+  kindWheel.user = true;
+  const tabs = document.getElementById('tabs');
+  let curKind = 'image';
+  function showKind(k) {
+    curKind = k;
+    kindWheel.set(k);
+    document.getElementById('kinddesc').textContent = lang === 'ar' ? AR_DESC[k] : KINDS[k].desc;
+    const formats = KINDS[k].items.filter((it) => it[0]).map((it) => it[0]);
+    const chips = [...formats.map((f) => `<span class="chip">${f}</span>`), ...KINDS[k].tools.map((t) => `<span class="chip tool">${tx(t)}</span>`)];
+    document.getElementById('chips').innerHTML = chips.map((c, i) => c.replace('<span ', `<span style="--i:${i}" `)).join('');
+    [...tabs.children].forEach((b) => {
+      b.setAttribute('aria-selected', String(b.dataset.k === k));
+      b.textContent = tx(KINDS[b.dataset.k].tab);
+    });
+  }
+  for (const k of Object.keys(KINDS)) {
+    const b = document.createElement('button');
+    b.className = 'tab';
+    b.type = 'button';
+    b.setAttribute('role', 'tab');
+    b.dataset.k = k;
+    b.textContent = KINDS[k].tab;
+    b.onclick = () => showKind(k);
+    tabs.append(b);
+  }
+  showKind('image');
+
+  // ---------- compress meter ----------
+  const meter = document.getElementById('meter');
+  const after = document.getElementById('after');
+  const pct = document.getElementById('pct');
+  function playMeter() {
+    meter.classList.remove('go');
+    void meter.offsetWidth;
+    meter.classList.add('go');
+    const t0 = performance.now(), dur = reduce ? 1 : 1600;
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / dur);
+      const e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+      const mb = 13 - (13 - 2.1) * e;
+      after.textContent = `${mb.toFixed(1)} MB`;
+      pct.innerHTML = lang === 'ar' ? `${Math.round((mb / 13) * 100)}٪<small>من الأصلي</small>` : `${Math.round((mb / 13) * 100)}%<small>of the original</small>`;
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  new IntersectionObserver((entries, obs) => {
+    if (entries.some((e) => e.isIntersecting)) { playMeter(); obs.disconnect(); }
+  }, { threshold: .5 }).observe(meter);
+  document.getElementById('replay').onclick = playMeter;
+
+  // ---------- theme ----------
+  const themeWheel = new Wheel(document.getElementById('themeWheel'), { onPick: (i) => themeWheel.flash(i) });
+  themeWheel.user = true;
+  themeWheel.set('video', 1);
+  const box = document.getElementById('themebox');
+  document.querySelectorAll('.switch button').forEach((b) => (b.onclick = () => {
+    document.querySelectorAll('.switch button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    box.classList.toggle('light', b.dataset.t === 'light');
+  }));
+
+  // ---------- rotating word ----------
+  const WORDS = { en: ['file', 'photo', 'PDF', 'video', 'song', 'doc'], ar: ['ملف', 'صورة', 'PDF', 'فيديو', 'أغنية', 'مستند'] };
+  let wi = 0;
+  if (!reduce) setInterval(() => {
+    const cyc = document.getElementById('cycle');
+    cyc.classList.add('out');
+    setTimeout(() => {
+      wi = (wi + 1) % WORDS[lang].length;
+      cyc.textContent = WORDS[lang][wi];
+      cyc.classList.remove('out');
+      cyc.classList.add('pre');
+      void cyc.offsetWidth;
+      cyc.classList.remove('pre');
+    }, 260);
+  }, 2200);
+
+  // ---------- journey: the card follows the scroll ----------
+  const STOPS_AR = [
+    { where: 'على الآيفون', note: 'مباشرة من جوالك، وويندوز لا يفتحها.' },
+    { where: 'في التنزيلات', note: 'تم التحويل: تفتح في كل مكان الآن.' },
+    { where: 'في التنزيلات', note: 'حجمها 15٪ من الأصلي وتبدو كما هي.' },
+    { where: 'في التنزيلات', note: 'ملف PDF من صفحة واحدة، جاهز للنموذج.' },
+    { where: 'في Drive › نوفمبر', note: 'رُفعت إلى مجلد هذا الشهر.' },
+  ];
+  const STOPS = [
+    { name: 'IMG_2048.HEIC', tag: 'HEIC', mb: 4.2, where: 'On the iPhone', note: "Straight from your phone. Windows can't open it.", cls: '' },
+    { name: 'IMG_2048.jpg', tag: 'JPG', mb: 3.1, where: 'In Downloads', note: 'Converted: opens everywhere now.', cls: '' },
+    { name: 'IMG_2048-compressed.jpg', tag: 'JPG', mb: 0.62, where: 'In Downloads', note: '15% of the size, looks the same.', cls: 'small' },
+    { name: 'IMG_2048.pdf', tag: 'PDF', mb: 0.66, where: 'In Downloads', note: 'A one-page PDF, ready for that form.', cls: 'small page' },
+    { name: 'IMG_2048.pdf', tag: 'PDF', mb: 0.66, where: 'In Drive › November', note: "Uploaded into this month's folder.", cls: 'small page drive' },
+  ];
+  const journey = document.getElementById('journey');
+  const jcard = document.getElementById('jcard');
+  const steps = [...document.querySelectorAll('#jsteps li')];
+  let stop = -1;
+  function showStop(k, force) {
+    if (k === stop && !force) return;
+    stop = k;
+    const st = STOPS[k];
+    jcard.className = `jcard ${st.cls}`;
+    document.getElementById('jtag').textContent = st.tag;
+    document.getElementById('jname').textContent = st.name;
+    document.getElementById('jsize').textContent = st.mb >= 1 ? `${st.mb.toFixed(1)} MB` : `${Math.round(st.mb * 1024)} KB`;
+    document.getElementById('jbar').style.width = `${Math.max(4, (st.mb / 4.2) * 100)}%`;
+    document.getElementById('jwhere').textContent = lang === 'ar' ? STOPS_AR[k].where : st.where;
+    document.getElementById('jnote').textContent = lang === 'ar' ? STOPS_AR[k].note : st.note;
+    steps.forEach((li, i) => { li.classList.toggle('on', i === k); li.classList.toggle('done', i < k); });
+    if (!reduce) {
+      jcard.style.transform = 'scale(.96) rotate(-1.5deg)';
+      setTimeout(() => (jcard.style.transform = ''), 160);
+    }
+  }
+  function onScroll() {
+    const r = journey.getBoundingClientRect();
+    const total = journey.offsetHeight - innerHeight;
+    const p = Math.min(1, Math.max(0, -r.top / Math.max(1, total)));
+    document.getElementById('jprog').style.width = `${p * 100}%`;
+    showStop(Math.min(STOPS.length - 1, Math.floor(p * STOPS.length)));
+  }
+  addEventListener('scroll', () => requestAnimationFrame(onScroll), { passive: true });
+  onScroll();
+  steps.forEach((li, i) => {
+    li.style.cursor = 'pointer';
+    li.onclick = () => {
+      const total = journey.offsetHeight - innerHeight;
+      scrollTo({ top: journey.offsetTop + total * ((i + .5) / STOPS.length), behavior: reduce ? 'auto' : 'smooth' });
+    };
+  });
+
+  // ---------- giant words ----------
+  const MEGA = { en: ['CONVERT', 'COMPRESS', 'SHARE', 'TRIM', 'CROP', 'MERGE'], ar: ['تحويل', 'ضغط', 'مشاركة', 'قص', 'دمج', 'تقسيم'] };
+  const fillMega = () => {
+    const once = MEGA[lang].map((w, i) => `<span class="${i % 3 === 0 ? 'fill' : ''}">${w}</span><em>✦</em>`).join('');
+    const half = once + once; // each half wider than any screen, so the loop never shows a gap
+    document.getElementById('mega').innerHTML = half + half;
+  };
+  fillMega();
+
+  // ---------- switching language ----------
+  const i18nEls = [...document.querySelectorAll('[data-i18n]')];
+  for (const e of i18nEls) e.dataset.en = e.innerHTML;
+  const h1 = document.querySelector('h1');
+  const h1LabelEn = h1.getAttribute('aria-label');
+  function setLang(l) {
+    lang = l;
+    const root = document.documentElement;
+    root.lang = l;
+    root.dir = l === 'ar' ? 'rtl' : 'ltr';
+    document.title = l === 'ar' ? 'Avio لويندوز' : 'Avio for Windows';
+    for (const e of i18nEls) e.innerHTML = l === 'ar' ? AR[e.dataset.i18n] ?? e.dataset.en : e.dataset.en;
+    h1.setAttribute('aria-label', l === 'ar' ? AR.h1Label : h1LabelEn);
+    const btn = document.getElementById('langbtn');
+    btn.textContent = l === 'ar' ? 'English' : 'عربي';
+    btn.lang = l === 'ar' ? 'en' : 'ar';
+    wi = 0;
+    hero.setWheel(hero.w);
+    kindWheel.setWheel(kindWheel.w);
+    themeWheel.setWheel(themeWheel.w);
+    showKind(curKind);
+    fillTickers();
+    fillMega();
+    showStop(Math.max(0, stop), true);
+    hud.className = 'hud';
+    if (meter.classList.contains('go')) pct.innerHTML = l === 'ar' ? '16٪<small>من الأصلي</small>' : '16%<small>of the original</small>';
+    try { localStorage.setItem('avio-lang', l); } catch {}
+  }
+  document.getElementById('langbtn').onclick = () => setLang(lang === 'ar' ? 'en' : 'ar');
+  let startLang = 'en';
+  try { startLang = localStorage.getItem('avio-lang') || startLang; } catch {}
+  if (location.hash === '#ar') startLang = 'ar';
+  else if (location.hash === '#en') startLang = 'en';
+  else if (!(() => { try { return localStorage.getItem('avio-lang'); } catch { return null; } })() && /^ar\b/i.test(navigator.language || '')) startLang = 'ar';
+  if (startLang === 'ar') setLang('ar');
+
+  // ---------- small touches ----------
+  if (!reduce) {
+    addEventListener('pointermove', (e) => {
+      document.body.style.setProperty('--mx', `${e.clientX}px`);
+      document.body.style.setProperty('--my', `${e.clientY}px`);
+    }, { passive: true });
+    const kb = document.getElementById('kb');
+    const t0 = performance.now();
+    const count = (now) => {
+      const p = Math.min(1, (now - t0) / 1200);
+      kb.textContent = Math.round(762 * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(count);
+    };
+    requestAnimationFrame(count);
+  }
+})();
+</script>
+
+</body>
+</html>
