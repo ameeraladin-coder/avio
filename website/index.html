@@ -315,7 +315,7 @@
   /* maker card: wheel + marquee */
   .maker { padding-block: 50px 80px; display: grid; place-items: center; }
   .mcard {
-    position: relative; width: min(780px, 100%); display: grid; grid-template-columns: 240px 1fr; gap: 34px; align-items: center; padding: 30px 34px;
+    position: relative; width: min(880px, 100%); display: grid; grid-template-columns: 240px 1fr; gap: 34px; align-items: center; padding: 30px 34px;
     background: var(--accent); color: #111; border-radius: 30px; overflow: hidden; box-shadow: 0 40px 90px -40px rgba(255, 245, 16, .45);
   }
   .mq { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; white-space: nowrap; direction: ltr; pointer-events: none; animation: mslide 18s linear infinite; }
@@ -344,7 +344,8 @@
   .mname { font: 900 clamp(30px, 4.2vw, 44px)/1.02 "Unbounded", system-ui, sans-serif; letter-spacing: -.03em; margin: 0 0 12px; direction: ltr; }
   .mname em { font-style: normal; text-decoration: underline 5px; text-underline-offset: 7px; }
   html[dir="rtl"] .mname { text-align: right; }
-  .mrole { color: #3c3a00; margin: 0 0 18px; max-width: 42ch; font-weight: 500; }
+  .mrole { color: #3c3a00; margin: 0 0 18px; font-weight: 500; text-wrap: balance; }
+  @media (min-width: 901px) { html:not([lang="ar"]) .mrole { white-space: nowrap; } }
   .memail { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 14px; background: #111; color: #f5f4ea; font: 600 14.5px var(--mono); direction: ltr; }
   .memail span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: all; }
   .mcopy { font: 700 12.5px/1 var(--body); border: 0; border-radius: 9px; padding: 10px 14px; color: #111; background: var(--accent); cursor: pointer; white-space: nowrap; transition: transform .1s; }
