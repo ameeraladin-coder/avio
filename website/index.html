@@ -312,44 +312,59 @@
   html[dir="rtl"] .hint { right: auto; left: 0; }
   html[dir="rtl"] .install li::before { justify-self: start; }
 
-  /* maker card */
+  /* maker card: wheel + keycaps */
   .maker { padding-block: 50px 80px; display: grid; place-items: center; }
   .mcard {
-    position: relative; width: min(600px, 100%); display: grid; grid-template-columns: 1fr;
-    background: linear-gradient(140deg, var(--surface-2), var(--surface) 65%); border: 1px solid var(--line); border-radius: 30px;
-    box-shadow: 0 40px 80px -36px rgba(0, 0, 0, .85); transition: transform .4s cubic-bezier(.2, 1, .35, 1), border-color .3s;
+    position: relative; width: min(760px, 100%); display: grid; grid-template-columns: 240px 1fr; gap: 34px; align-items: center; padding: 30px 34px;
+    background: linear-gradient(160deg, #1d1d17, #0f0f0c); border: 1px solid var(--line); border-radius: 30px; box-shadow: 0 40px 80px -36px rgba(0, 0, 0, .85);
   }
-  .mcard:hover { transform: translateY(-5px); border-color: rgba(255, 245, 16, .4); }
-  .mcard::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-    background: radial-gradient(420px 220px at 100% 0, rgba(255, 245, 16, .10), transparent 70%); }
-  .mbody { position: relative; z-index: 1; padding: 38px 38px 34px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
-  .mhead { display: flex; align-items: center; gap: 18px; margin-bottom: 14px; }
-  .mava { flex: none; width: 76px; height: 76px; border-radius: 50%; overflow: hidden; position: relative;
-    background: radial-gradient(circle at 50% 70%, rgba(255, 245, 16, .7), rgba(255, 245, 16, .15) 50%, #101013 75%);
-    box-shadow: 0 0 0 2px var(--accent), 0 0 22px rgba(255, 245, 16, .35); }
-  .mava img { position: absolute; left: 50%; bottom: -2px; width: 92%; height: auto; transform: translateX(-50%); }
-  .mkick { display: inline-flex; align-items: center; gap: 10px; font: 700 12.5px/1 var(--body); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
-  .mkick::before { content: ""; width: 26px; height: 2px; background: var(--accent); border-radius: 2px; }
-  html[lang="ar"] .mkick { letter-spacing: 0; font-size: 14px; }
-  .mname { font: 900 clamp(26px, 3.6vw, 36px)/1.05 var(--display); letter-spacing: -.03em; margin: 8px 0 0; }
-  .mname em { font-style: normal; color: var(--accent); }
-  html[lang="ar"] .mname { letter-spacing: 0; }
-  .mrole { color: var(--muted); margin: 0 0 22px; max-width: 40ch; }
-  .memail { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; margin-bottom: 12px; border-radius: 14px; background: var(--bg); border: 1px solid var(--line); font: 600 14.5px var(--mono); direction: ltr; }
+  .mcard::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(300px 260px at 18% 50%, rgba(255, 245, 16, .09), transparent 70%); }
+  .mwheel { position: relative; width: 240px; height: 240px; z-index: 1; }
+  .mwheel svg { position: absolute; inset: 0; overflow: visible; }
+  .mwheel a { cursor: pointer; outline: none; }
+  .mwheel .side { fill: #0a0a08; }
+  .mwheel .cap { fill: url(#mcapg); transition: transform .12s, fill .2s; }
+  .mwheel .lab { transition: transform .12s; pointer-events: none; }
+  .mwheel .lab path { fill: none; stroke: var(--text); stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+  .mwheel .lab path.f { fill: var(--text); stroke: none; }
+  .mwheel .lab text { fill: var(--muted); font: 700 10.5px var(--body); text-anchor: middle; dominant-baseline: central; }
+  .mwheel a:hover .cap, .mwheel a:focus-visible .cap, .mwheel a:hover .lab, .mwheel a:focus-visible .lab, .mwheel a.press .cap, .mwheel a.press .lab { transform: translateY(4px); }
+  .mwheel a.hot .side { fill: #a39d00; }
+  .mwheel a.hot .cap { fill: url(#mcapy); }
+  .mwheel a.hot .lab path { stroke: var(--on-accent); } .mwheel a.hot .lab path.f { fill: var(--on-accent); } .mwheel a.hot .lab text { fill: #3a3700; }
+  .mwheel a:not(.hot):hover .cap { fill: #34342a; }
+  .mava { position: absolute; left: 50%; top: 50%; width: 96px; height: 96px; margin: -50px 0 0 -48px; border-radius: 50%; overflow: hidden;
+    background: radial-gradient(circle at 50% 78%, rgba(255, 245, 16, .75), rgba(255, 245, 16, .15) 52%, #101013 76%); box-shadow: 0 0 0 3px var(--accent), 0 0 26px rgba(255, 245, 16, .35); }
+  .mava img { position: absolute; left: 50%; bottom: -2px; width: 94%; height: auto; transform: translateX(-50%); }
+  .mbody { position: relative; z-index: 1; min-width: 0; }
+  .mkeys { display: flex; gap: 8px; direction: ltr; margin-bottom: 14px; }
+  html[dir="rtl"] .mkeys { justify-content: flex-end; }
+  .mkey { width: 52px; height: 56px; display: grid; place-items: center; border-radius: 11px; font: 900 24px/1 "Unbounded", system-ui, sans-serif; color: var(--text);
+    background: linear-gradient(#2c2c24, #1d1d17); box-shadow: inset 0 -5px 0 #0a0a08, inset 0 1px 0 rgba(255, 255, 255, .08), 0 6px 12px rgba(0, 0, 0, .5); transition: transform .12s, box-shadow .12s; }
+  .mkey.y { background: linear-gradient(#fffa6a, #fff510); color: var(--on-accent); box-shadow: inset 0 -5px 0 #a39d00, 0 6px 16px rgba(255, 245, 16, .3); }
+  .mkey.down { transform: translateY(3px); box-shadow: inset 0 -2px 0 #0a0a08, 0 2px 4px rgba(0, 0, 0, .5); }
+  .mkey.y.down { box-shadow: inset 0 -2px 0 #a39d00; }
+  .mcard.pre .mkey { opacity: 0; transform: translateY(-14px) scale(.9); }
+  .mcard.go .mkey { animation: keyin .45s cubic-bezier(.2, 1.4, .4, 1) both; }
+  @keyframes keyin { from { opacity: 0; transform: translateY(-14px) scale(.9); } 60% { transform: translateY(3px); } }
+  .mname { font: 900 clamp(26px, 3.4vw, 34px)/1.1 var(--display); letter-spacing: -.02em; color: var(--accent); margin: 0 0 8px; direction: ltr; }
+  html[dir="rtl"] .mname { text-align: right; }
+  .mrole { color: var(--muted); margin: 0 0 18px; max-width: 42ch; }
+  .memail { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 14px; background: #0b0b09; border: 1px solid var(--line); font: 600 14.5px var(--mono); direction: ltr; }
   .memail span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: all; }
-  .mcopy { font: 700 12.5px/1 var(--body); border: 0; border-radius: 10px; padding: 9px 13px; background: var(--surface-2); color: var(--text); cursor: pointer; white-space: nowrap; }
-  .mcopy:hover { background: var(--accent); color: var(--on-accent); }
-  .mrow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .mbtn { display: flex; align-items: center; justify-content: center; gap: 9px; height: 48px; border-radius: 14px; text-decoration: none; font: 700 15px/1 var(--body);
-    border: 1px solid var(--line); background: var(--surface); color: var(--text); transition: background .2s, color .2s, transform .2s, border-color .2s; }
-  .mbtn.li:hover { background: #0a66c2; border-color: #0a66c2; color: #fff; transform: translateY(-2px); }
-  .mbtn.mail { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-  .mbtn.mail:hover { transform: translateY(-2px); box-shadow: 0 10px 26px -8px rgba(255, 245, 16, .6); }
+  .mcopy { font: 700 12.5px/1 var(--body); border: 0; border-radius: 9px; padding: 10px 14px 12px; color: var(--on-accent); cursor: pointer; white-space: nowrap;
+    background: linear-gradient(#fffa6a, #fff510); box-shadow: inset 0 -4px 0 #a39d00; transition: transform .1s, box-shadow .1s; }
+  .mcopy:active { transform: translateY(2px); box-shadow: inset 0 -2px 0 #a39d00; }
+  .mhint { margin-top: 12px; font: 600 12px var(--mono); color: var(--muted); }
+  .mhint b { color: var(--accent); }
+  html[lang="ar"] .mhint { font: 500 13px var(--body); }
   @media (max-width: 700px) {
-    .maker { padding-top: 40px; }
-    .mcard { grid-template-columns: 1fr; text-align: center; }
-    .mbody { padding: 26px 20px 24px; }
-    .mhead { flex-direction: column; gap: 12px; }
+    .maker { padding-top: 30px; }
+    .mcard { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 28px 18px 24px; gap: 22px; }
+    .mbody { width: 100%; }
+    .mkeys, html[dir="rtl"] .mkeys { justify-content: center; }
+    .mkey { width: 46px; height: 50px; font-size: 21px; }
+    .mname, html[dir="rtl"] .mname { text-align: center; }
     .mrole { margin-inline: auto; }
   }
 
@@ -591,24 +606,14 @@
   </div>
 
   <section class="maker" aria-label="Made by">
-    <div class="mcard">
+    <div class="mcard pre" id="mcard">
+      <div class="mwheel" id="mwheel"><div class="mava"><img src="ameer-cut.webp" alt="Ameer Muhammed" width="560" height="606"></div></div>
       <div class="mbody">
-        <div class="mhead">
-          <div class="mava"><img src="ameer-cut.webp" alt="Ameer Muhammed" width="560" height="606"></div>
-          <div><div class="mkick" data-i18n="madeBy">Made by</div><div class="mname">Ameer <em>Muhammed</em></div></div>
-        </div>
+        <div class="mkeys" aria-label="Ameer"><span class="mkey y">A</span><span class="mkey">M</span><span class="mkey">E</span><span class="mkey">E</span><span class="mkey">R</span></div>
+        <div class="mname">Muhammed</div>
         <p class="mrole" data-i18n="role">Built Avio to make everyday file work faster, private and offline.</p>
         <div class="memail"><span id="memail">ameeraladin@gmail.com</span><button class="mcopy" id="mcopy" type="button" data-i18n="copy">Copy</button></div>
-        <div class="mrow">
-          <a class="mbtn li" href="https://www.linkedin.com/in/muhammed-ameer-aladdin-71198b1b2" target="_blank" rel="noopener">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.06c.53-1 1.82-2.06 3.75-2.06 4 0 4.74 2.64 4.74 6.07V21h-4v-5.1c0-1.22-.02-2.78-1.7-2.78-1.7 0-1.95 1.32-1.95 2.69V21h-4z"/></svg>
-            LinkedIn
-          </a>
-          <a class="mbtn mail" href="mailto:ameeraladin@gmail.com">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18v14H3zM3 6l9 7 9-7"/></svg>
-            <span data-i18n="mailBtn">Email</span>
-          </a>
-        </div>
+        <div class="mhint" data-i18n="mhint">Tap a petal on the wheel</div>
       </div>
     </div>
   </section>
@@ -660,7 +665,7 @@
     orbit: 'AVIO · AVIO · AVIO · AVIO · AVIO · AVIO · AVIO ·',
     finalNote: 'مجاني · ويندوز 10 و 11 · بضغطتين فقط',
     ctaFinal: 'حمّل Avio',
-    madeBy: 'صُنع بواسطة', role: 'طوّرت Avio عشان يكون شغل الملفات اليومي أسرع وأخصّ وبدون إنترنت.', copy: 'نسخ', mailBtn: 'إيميل', foot1: '© 2026 Avio · رخصة MIT', foot2: 'Avio لويندوز · الإصدار 1.2.2',
+    madeBy: 'صُنع بواسطة', role: 'طوّرت Avio عشان يكون شغل الملفات اليومي أسرع وأخصّ وبدون إنترنت.', copy: 'نسخ', mailBtn: 'إيميل', mhint: 'اضغط على أي بتلة في العجلة', foot1: '© 2026 Avio · رخصة MIT', foot2: 'Avio لويندوز · الإصدار 1.2.2',
   };
   // short labels used inside the wheels, chips and messages
   const AR_WORDS = {
@@ -1220,6 +1225,43 @@
   fillMega();
 
   // ---------- switching language ----------
+  // ---------- maker card: wheel petals + keycaps ----------
+  (() => {
+    const W = document.getElementById('mwheel'), card = document.getElementById('mcard');
+    const NS = 'http://www.w3.org/2000/svg', C = 120;
+    const P = (r, a) => [C + r * Math.sin(a), C - r * Math.cos(a)];
+    const sect = (a0, a1, ro, ri) => { const [x0, y0] = P(ro, a0), [x1, y1] = P(ro, a1), [x2, y2] = P(ri, a1), [x3, y3] = P(ri, a0); return `M${x0} ${y0}A${ro} ${ro} 0 0 1 ${x1} ${y1}L${x2} ${y2}A${ri} ${ri} 0 0 0 ${x3} ${y3}Z`; };
+    const T = 2 * Math.PI / 3, g = .07;
+    const items = [
+      { href: 'https://www.linkedin.com/in/muhammed-ameer-aladdin-71198b1b2', label: 'LinkedIn', d: 'M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.5h4V21H3zM9.5 9.5h3.8v1.6h.06c.53-1 1.82-2.06 3.75-2.06 4 0 4.74 2.64 4.74 6.07V21h-4v-5.1c0-1.22-.02-2.78-1.7-2.78-1.7 0-1.95 1.32-1.95 2.69V21h-4z', f: 1 },
+      { href: 'mailto:ameeraladin@gmail.com', label: 'Email', i18n: 'mailBtn', d: 'M3 5h18v14H3zM3 6l9 7 9-7', hot: 1 },
+      { href: '#', label: 'Copy', i18n: 'copy', d: 'M8 8h12v12H8zM16 8V4H4v12h4', copy: 1 },
+    ];
+    let svg = `<svg viewBox="0 0 240 240" aria-hidden="false"><defs><linearGradient id="mcapg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2e2e26"/><stop offset="1" stop-color="#1b1b15"/></linearGradient><linearGradient id="mcapy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffa6a"/><stop offset="1" stop-color="#fff510"/></linearGradient></defs>`;
+    items.forEach((it, i) => {
+      const a0 = i * T - T / 2 + g, a1 = i * T + T / 2 - g, d = sect(a0, a1, 116, 62), [x, y] = P(89, i * T);
+      svg += `<a href="${it.href}"${it.href.startsWith('http') ? ' target="_blank" rel="noopener"' : ''} class="${it.hot ? 'hot' : ''}" data-copy="${it.copy ? 1 : ''}" aria-label="${it.label}">
+        <path class="side" d="${d}" transform="translate(0 5)"/><path class="cap" d="${d}"/>
+        <g class="lab"><path class="${it.f ? 'f' : ''}" d="${it.d}" transform="translate(${x - 9} ${y - 17}) scale(.75)"/><text x="${x}" y="${y + 12}"${it.i18n ? ` data-i18n="${it.i18n}"` : ''}>${it.label}</text></g></a>`;
+    });
+    W.insertAdjacentHTML('afterbegin', svg + '</svg>');
+    W.querySelectorAll('a').forEach((a) => {
+      a.addEventListener('pointerdown', () => a.classList.add('press'));
+      ['pointerup', 'pointerleave'].forEach((e) => a.addEventListener(e, () => a.classList.remove('press')));
+      if (a.dataset.copy) a.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('mcopy').click(); });
+    });
+    // keys drop in one by one, then get "typed"
+    const keys = [...card.querySelectorAll('.mkey')];
+    const type = () => keys.forEach((k, i) => setTimeout(() => { k.classList.add('down'); setTimeout(() => k.classList.remove('down'), 140); }, 700 + i * 160));
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      if (!e.isIntersecting) return;
+      keys.forEach((k, i) => (k.style.animationDelay = i * 90 + 'ms'));
+      card.classList.remove('pre'); card.classList.add('go'); type(); io.disconnect();
+    }), { threshold: .4 });
+    io.observe(card);
+    card.addEventListener('mouseenter', type);
+  })();
+
   const i18nEls = [...document.querySelectorAll('[data-i18n]')];
   for (const e of i18nEls) e.dataset.en = e.innerHTML;
   const h1 = document.querySelector('h1');
