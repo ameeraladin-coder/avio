@@ -1,0 +1,31 @@
+# One-off: takes the app package out of the zip uploaded to the Avio 1.2.1 draft
+# and attaches it to that draft under the name the web installer downloads.
+name: Fix Avio 1.2.1 release files
+on:
+  push:
+    branches: [fix-release-1.2.1]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      RELEASE_ID: '438283803'
+      ZIP_ASSET_ID: '724108244'
+      PACKAGE: avio-1.2.1-x64.nsis.7z
+      PACKAGE_SHA512: /b0apxZUzlU2j4pAWdcHvIT206qOlQLEILqPw/80UPWGLlg2lI4xR/Twbmor2CWymUJ2bGpRLns6yvHakCt8TQ==
+    steps:
+      - name: Take the app package out of the uploaded zip
+        run: |
+          gh api -H "Accept: application/octet-stream" "repos/$REPO/releases/assets/$ZIP_ASSET_ID" > release.zip
+          unzip -o release.zip "$PACKAGE"
+          actual="$(openssl dgst -sha512 -binary "$PACKAGE" | base64 -w0)"
+          echo "sha512: $actual"
+          test "$actual" = "$PACKAGE_SHA512"
+      - name: Attach it to the draft release
+        run: |
+          gh api -X POST -H "Content-Type: application/octet-stream" \
+            "https://uploads.github.com/repos/$REPO/releases/$RELEASE_ID/assets?name=$PACKAGE" \
+            --input "$PACKAGE" --jq '{name, size, state}'
