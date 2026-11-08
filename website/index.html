@@ -312,58 +312,49 @@
   html[dir="rtl"] .hint { right: auto; left: 0; }
   html[dir="rtl"] .install li::before { justify-self: start; }
 
-  /* maker card: wheel + keycaps */
+  /* maker card: wheel + marquee */
   .maker { padding-block: 50px 80px; display: grid; place-items: center; }
   .mcard {
-    position: relative; width: min(760px, 100%); display: grid; grid-template-columns: 240px 1fr; gap: 34px; align-items: center; padding: 30px 34px;
-    background: linear-gradient(160deg, #1d1d17, #0f0f0c); border: 1px solid var(--line); border-radius: 30px; box-shadow: 0 40px 80px -36px rgba(0, 0, 0, .85);
+    position: relative; width: min(780px, 100%); display: grid; grid-template-columns: 240px 1fr; gap: 34px; align-items: center; padding: 30px 34px;
+    background: var(--accent); color: #111; border-radius: 30px; overflow: hidden; box-shadow: 0 40px 90px -40px rgba(255, 245, 16, .45);
   }
-  .mcard::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(300px 260px at 18% 50%, rgba(255, 245, 16, .09), transparent 70%); }
+  .mq { position: absolute; left: 0; top: 50%; transform: translateY(-50%); display: flex; white-space: nowrap; direction: ltr; pointer-events: none; animation: mslide 18s linear infinite; }
+  .mq span { font: 900 130px/1 "Unbounded", system-ui, sans-serif; color: transparent; -webkit-text-stroke: 1.5px rgba(0, 0, 0, .14); padding-right: 50px; }
+  .mq.two { top: auto; bottom: -34px; transform: none; animation-direction: reverse; animation-duration: 26s; }
+  .mq.two span { font-size: 70px; -webkit-text-stroke-color: rgba(0, 0, 0, .1); }
+  @keyframes mslide { to { translate: -50% 0; } }
   .mwheel { position: relative; width: 240px; height: 240px; z-index: 1; }
   .mwheel svg { position: absolute; inset: 0; overflow: visible; }
   .mwheel a { cursor: pointer; outline: none; }
-  .mwheel .side { fill: #0a0a08; }
-  .mwheel .cap { fill: url(#mcapg); transition: transform .12s, fill .2s; }
+  .mwheel .side { fill: #000; }
+  .mwheel .cap { fill: #16160f; transition: transform .12s, fill .2s; }
   .mwheel .lab { transition: transform .12s; pointer-events: none; }
-  .mwheel .lab path { fill: none; stroke: var(--text); stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
-  .mwheel .lab path.f { fill: var(--text); stroke: none; }
-  .mwheel .lab text { fill: var(--muted); font: 700 10.5px var(--body); text-anchor: middle; dominant-baseline: central; }
+  .mwheel .lab path { fill: none; stroke: var(--accent); stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+  .mwheel .lab path.f { fill: var(--accent); stroke: none; }
+  .mwheel .lab text { fill: #f5f4ea; font: 700 10.5px var(--body); text-anchor: middle; dominant-baseline: central; }
   .mwheel a:hover .cap, .mwheel a:focus-visible .cap, .mwheel a:hover .lab, .mwheel a:focus-visible .lab, .mwheel a.press .cap, .mwheel a.press .lab { transform: translateY(4px); }
-  .mwheel a.hot .side { fill: #a39d00; }
-  .mwheel a.hot .cap { fill: url(#mcapy); }
-  .mwheel a.hot .lab path { stroke: var(--on-accent); } .mwheel a.hot .lab path.f { fill: var(--on-accent); } .mwheel a.hot .lab text { fill: #3a3700; }
-  .mwheel a:not(.hot):hover .cap { fill: #34342a; }
+  .mwheel a.hot .side { fill: #bdb9a0; }
+  .mwheel a.hot .cap { fill: #fff; }
+  .mwheel a.hot .lab path { stroke: #111; } .mwheel a.hot .lab path.f { fill: #111; } .mwheel a.hot .lab text { fill: #111; }
+  .mwheel a:not(.hot):hover .cap { fill: #2a2a20; }
   .mava { position: absolute; left: 50%; top: 50%; width: 96px; height: 96px; margin: -50px 0 0 -48px; border-radius: 50%; overflow: hidden;
-    background: radial-gradient(circle at 50% 78%, rgba(255, 245, 16, .75), rgba(255, 245, 16, .15) 52%, #101013 76%); box-shadow: 0 0 0 3px var(--accent), 0 0 26px rgba(255, 245, 16, .35); }
+    background: radial-gradient(circle at 50% 78%, #fff, #fffa80 45%, #e8e000 75%); box-shadow: 0 0 0 4px #111; }
   .mava img { position: absolute; left: 50%; bottom: -2px; width: 94%; height: auto; transform: translateX(-50%); }
   .mbody { position: relative; z-index: 1; min-width: 0; }
-  .mkeys { display: flex; gap: 8px; direction: ltr; margin-bottom: 14px; }
-  html[dir="rtl"] .mkeys { justify-content: flex-end; }
-  .mkey { width: 52px; height: 56px; display: grid; place-items: center; border-radius: 11px; font: 900 24px/1 "Unbounded", system-ui, sans-serif; color: var(--text);
-    background: linear-gradient(#2c2c24, #1d1d17); box-shadow: inset 0 -5px 0 #0a0a08, inset 0 1px 0 rgba(255, 255, 255, .08), 0 6px 12px rgba(0, 0, 0, .5); transition: transform .12s, box-shadow .12s; }
-  .mkey.y { background: linear-gradient(#fffa6a, #fff510); color: var(--on-accent); box-shadow: inset 0 -5px 0 #a39d00, 0 6px 16px rgba(255, 245, 16, .3); }
-  .mkey.down { transform: translateY(3px); box-shadow: inset 0 -2px 0 #0a0a08, 0 2px 4px rgba(0, 0, 0, .5); }
-  .mkey.y.down { box-shadow: inset 0 -2px 0 #a39d00; }
-  .mcard.pre .mkey { opacity: 0; transform: translateY(-14px) scale(.9); }
-  .mcard.go .mkey { animation: keyin .45s cubic-bezier(.2, 1.4, .4, 1) both; }
-  @keyframes keyin { from { opacity: 0; transform: translateY(-14px) scale(.9); } 60% { transform: translateY(3px); } }
-  .mname { font: 900 clamp(26px, 3.4vw, 34px)/1.1 var(--display); letter-spacing: -.02em; color: var(--accent); margin: 0 0 8px; direction: ltr; }
+  .mname { font: 900 clamp(30px, 4.2vw, 44px)/1.02 "Unbounded", system-ui, sans-serif; letter-spacing: -.03em; margin: 0 0 12px; direction: ltr; }
+  .mname em { font-style: normal; text-decoration: underline 5px; text-underline-offset: 7px; }
   html[dir="rtl"] .mname { text-align: right; }
-  .mrole { color: var(--muted); margin: 0 0 18px; max-width: 42ch; }
-  .memail { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 14px; background: #0b0b09; border: 1px solid var(--line); font: 600 14.5px var(--mono); direction: ltr; }
+  .mrole { color: #3c3a00; margin: 0 0 18px; max-width: 42ch; font-weight: 500; }
+  .memail { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 14px; background: #111; color: #f5f4ea; font: 600 14.5px var(--mono); direction: ltr; }
   .memail span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: all; }
-  .mcopy { font: 700 12.5px/1 var(--body); border: 0; border-radius: 9px; padding: 10px 14px 12px; color: var(--on-accent); cursor: pointer; white-space: nowrap;
-    background: linear-gradient(#fffa6a, #fff510); box-shadow: inset 0 -4px 0 #a39d00; transition: transform .1s, box-shadow .1s; }
-  .mcopy:active { transform: translateY(2px); box-shadow: inset 0 -2px 0 #a39d00; }
-  .mhint { margin-top: 12px; font: 600 12px var(--mono); color: var(--muted); }
-  .mhint b { color: var(--accent); }
-  html[lang="ar"] .mhint { font: 500 13px var(--body); }
+  .mcopy { font: 700 12.5px/1 var(--body); border: 0; border-radius: 9px; padding: 10px 14px; color: #111; background: var(--accent); cursor: pointer; white-space: nowrap; transition: transform .1s; }
+  .mcopy:hover { background: #fff; } .mcopy:active { transform: scale(.95); }
+  .mhint { margin-top: 12px; font: 700 12px var(--mono); color: #5a5700; }
+  html[lang="ar"] .mhint { font: 600 13px var(--body); }
   @media (max-width: 700px) {
     .maker { padding-top: 30px; }
-    .mcard { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 28px 18px 24px; gap: 22px; }
+    .mcard { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 28px 18px 24px; gap: 20px; }
     .mbody { width: 100%; }
-    .mkeys, html[dir="rtl"] .mkeys { justify-content: center; }
-    .mkey { width: 46px; height: 50px; font-size: 21px; }
     .mname, html[dir="rtl"] .mname { text-align: center; }
     .mrole { margin-inline: auto; }
   }
@@ -606,11 +597,12 @@
   </div>
 
   <section class="maker" aria-label="Made by">
-    <div class="mcard pre" id="mcard">
+    <div class="mcard" id="mcard">
+      <div class="mq" aria-hidden="true"><span>AMEER MUHAMMED</span><span>AMEER MUHAMMED</span><span>AMEER MUHAMMED</span><span>AMEER MUHAMMED</span></div>
+      <div class="mq two" aria-hidden="true"><span>AVIO · AVIO · AVIO ·</span><span>AVIO · AVIO · AVIO ·</span><span>AVIO · AVIO · AVIO ·</span><span>AVIO · AVIO · AVIO ·</span></div>
       <div class="mwheel" id="mwheel"><div class="mava"><img src="ameer-cut.webp" alt="Ameer Muhammed" width="560" height="606"></div></div>
       <div class="mbody">
-        <div class="mkeys" aria-label="Ameer"><span class="mkey y">A</span><span class="mkey">M</span><span class="mkey">E</span><span class="mkey">E</span><span class="mkey">R</span></div>
-        <div class="mname">Muhammed</div>
+        <div class="mname">Ameer <em>Muhammed</em></div>
         <p class="mrole" data-i18n="role">Built Avio to make everyday file work faster, private and offline.</p>
         <div class="memail"><span id="memail">ameeraladin@gmail.com</span><button class="mcopy" id="mcopy" type="button" data-i18n="copy">Copy</button></div>
         <div class="mhint" data-i18n="mhint">Tap a petal on the wheel</div>
@@ -1225,9 +1217,9 @@
   fillMega();
 
   // ---------- switching language ----------
-  // ---------- maker card: wheel petals + keycaps ----------
+  // ---------- maker card: wheel petals ----------
   (() => {
-    const W = document.getElementById('mwheel'), card = document.getElementById('mcard');
+    const W = document.getElementById('mwheel');
     const NS = 'http://www.w3.org/2000/svg', C = 120;
     const P = (r, a) => [C + r * Math.sin(a), C - r * Math.cos(a)];
     const sect = (a0, a1, ro, ri) => { const [x0, y0] = P(ro, a0), [x1, y1] = P(ro, a1), [x2, y2] = P(ri, a1), [x3, y3] = P(ri, a0); return `M${x0} ${y0}A${ro} ${ro} 0 0 1 ${x1} ${y1}L${x2} ${y2}A${ri} ${ri} 0 0 0 ${x3} ${y3}Z`; };
@@ -1250,16 +1242,6 @@
       ['pointerup', 'pointerleave'].forEach((e) => a.addEventListener(e, () => a.classList.remove('press')));
       if (a.dataset.copy) a.addEventListener('click', (e) => { e.preventDefault(); document.getElementById('mcopy').click(); });
     });
-    // keys drop in one by one, then get "typed"
-    const keys = [...card.querySelectorAll('.mkey')];
-    const type = () => keys.forEach((k, i) => setTimeout(() => { k.classList.add('down'); setTimeout(() => k.classList.remove('down'), 140); }, 700 + i * 160));
-    const io = new IntersectionObserver((es) => es.forEach((e) => {
-      if (!e.isIntersecting) return;
-      keys.forEach((k, i) => (k.style.animationDelay = i * 90 + 'ms'));
-      card.classList.remove('pre'); card.classList.add('go'); type(); io.disconnect();
-    }), { threshold: .4 });
-    io.observe(card);
-    card.addEventListener('mouseenter', type);
   })();
 
   const i18nEls = [...document.querySelectorAll('[data-i18n]')];
